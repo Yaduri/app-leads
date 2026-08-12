@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { GripVertical, Pencil } from "lucide-react";
 
 import { SaleBadge } from "@/components/leads/status-badge";
@@ -29,10 +29,38 @@ export function LeadsKanban({
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null);
+  const dragCounter = useRef<Record<string, number>>({});
 
-  function handleDrop(status: LeadStatus) {
+  const handleDragEnter = (e: React.DragEvent, status: LeadStatus) => {
+    e.preventDefault();
+    if (!dragCounter.current[status]) {
+      dragCounter.current[status] = 0;
+    }
+    dragCounter.current[status]++;
+    if (overColumn !== status) {
+      setOverColumn(status);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent, status: LeadStatus) => {
+    e.preventDefault();
+    if (dragCounter.current[status]) {
+      dragCounter.current[status]--;
+    }
+    if (dragCounter.current[status] === 0) {
+      setOverColumn(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, status: LeadStatus) => {
+    e.preventDefault();
+    dragCounter.current[status] = 0;
     setOverColumn(null);
-  }
+    const id = e.dataTransfer.getData("text/lead-id");
+    if (id) {
+      onStatusChange(id, status);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -40,30 +68,29 @@ export function LeadsKanban({
         const items = leads.filter(
           (lead) => lead.status_prospeccao === status,
         );
+        const isOver = overColumn === status;
 
         return (
           <div
             key={status}
-            className="flex flex-col rounded-xl border bg-muted/20"
+            className={cn(
+              "flex flex-col rounded-xl border transition-all duration-200",
+              isOver
+                ? "border-primary bg-primary/[0.03] ring-2 ring-primary/20 scale-[1.01]"
+                : "border-border bg-muted/20"
+            )}
             onDragOver={(e) => {
               e.preventDefault();
               e.dataTransfer.dropEffect = "move";
-              if (overColumn !== status) setOverColumn(status);
             }}
-            onDragLeave={() => {
-              if (overColumn === status) setOverColumn(null);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const id = e.dataTransfer.getData("text/lead-id");
-              handleDrop(status);
-              if (id) onStatusChange(id, status);
-            }}
+            onDragEnter={(e) => handleDragEnter(e, status)}
+            onDragLeave={(e) => handleDragLeave(e, status)}
+            onDrop={(e) => handleDrop(e, status)}
           >
             <div
               className={cn(
-                "flex items-center gap-2 border-b px-4 py-3 transition-colors",
-                overColumn === status ? "bg-muted" : "",
+                "flex items-center gap-2 border-b px-4 py-3 transition-colors duration-200",
+                isOver ? "bg-primary/5 border-primary/20" : "",
               )}
             >
               <span className={cn("size-2.5 rounded-full", DOT_COLORS[status])} />
@@ -73,74 +100,79 @@ export function LeadsKanban({
               </span>
             </div>
 
-            <div className="flex flex-1 flex-col gap-3 p-3 min-h-40">
+            <div className="flex flex-1 flex-col gap-3 p-3 min-h-[400px]">
               {items.length === 0 && (
                 <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center text-xs text-muted-foreground">
                   Arraste cards para cá
                 </div>
               )}
-              {items.map((lead) => (
-                <div
-                  key={lead.id}
-                  draggable
-                  onDragStart={(e) => {
-                    setDraggingId(lead.id);
-                    e.dataTransfer.setData("text/lead-id", lead.id);
-                    e.dataTransfer.effectAllowed = "move";
-                  }}
-                  onDragEnd={() => setDraggingId(null)}
-                  className={cn(
-                    "group cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-opacity active:cursor-grabbing",
-                    draggingId === lead.id && "opacity-40",
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="line-clamp-2 text-sm font-semibold">
-                        {lead.nome}
-                      </p>
-                      {lead.nicho ? (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {lead.nicho}
+              {items.map((lead) => {
+                const isDraggingThis = draggingId === lead.id;
+                return (
+                  <div
+                    key={lead.id}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggingId(lead.id);
+                      e.dataTransfer.setData("text/lead-id", lead.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragEnd={() => setDraggingId(null)}
+                    className={cn(
+                      "group cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 active:cursor-grabbing",
+                      isDraggingThis
+                        ? "opacity-20 border-dashed border-primary bg-primary/5 scale-[0.98]"
+                        : "hover:shadow-md hover:border-primary/30"
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-sm font-semibold">
+                          {lead.nome}
                         </p>
+                        {lead.nicho ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {lead.nicho}
+                          </p>
+                        ) : null}
+                      </div>
+                      <GripVertical className="size-4 shrink-0 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors" />
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <SaleBadge sale={lead.venda_realizada} />
+                      {lead.valor_venda > 0 ? (
+                        <span className="text-sm font-semibold">
+                          {formatCurrency(lead.valor_venda)}
+                        </span>
                       ) : null}
                     </div>
-                    <GripVertical className="size-4 shrink-0 text-muted-foreground/60" />
-                  </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <SaleBadge sale={lead.venda_realizada} />
-                    {lead.valor_venda > 0 ? (
-                      <span className="text-sm font-semibold">
-                        {formatCurrency(lead.valor_venda)}
-                      </span>
+                    {lead.msg_a_mandar ? (
+                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                        {lead.msg_a_mandar}
+                      </p>
                     ) : null}
-                  </div>
 
-                  {lead.msg_a_mandar ? (
-                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                      {lead.msg_a_mandar}
-                    </p>
-                  ) : null}
-
-                  <div className="mt-3 flex items-center gap-2">
-                    <WhatsAppButton
-                      phone={lead.whatsapp}
-                      message={lead.msg_a_mandar}
-                      label="WhatsApp"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-auto h-8 w-8"
-                      title="Editar"
-                      onClick={() => onEdit(lead)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
+                    <div className="mt-3 flex items-center gap-2">
+                      <WhatsAppButton
+                        phone={lead.whatsapp}
+                        message={lead.msg_a_mandar}
+                        label="WhatsApp"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-auto h-8 w-8"
+                        title="Editar"
+                        onClick={() => onEdit(lead)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
