@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  Settings,
   Target,
   Upload,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/importar", label: "Importar CSV", icon: Upload },
+  { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 function Logo() {
