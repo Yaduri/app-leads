@@ -1,6 +1,7 @@
 "use client";
 
-import { FileSearch, Pencil, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileSearch, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 
 import { SaleBadge, StatusBadge } from "@/components/leads/status-badge";
 import { WhatsAppButton } from "@/components/leads/whatsapp-button";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, formatDateBR } from "@/lib/format";
 import type { Lead } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function LeadsTable({
   leads,
@@ -25,6 +27,42 @@ export function LeadsTable({
   onEdit: (lead: Lead) => void;
   onDelete: (lead: Lead) => void;
 }) {
+  const [sortField, setSortField] = useState<keyof Lead | null>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  function handleSort(field: keyof Lead) {
+    if (sortField === field) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  }
+
+  const sortedLeads = useMemo(() => {
+    if (!sortField) return leads;
+
+    return [...leads].sort((a, b) => {
+      const aVal = a[sortField];
+      const bVal = b[sortField];
+
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+
+      let comparison = 0;
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        comparison = aVal - bVal;
+      } else {
+        comparison = String(aVal).localeCompare(String(bVal), "pt-BR", {
+          numeric: true,
+          sensitivity: "base",
+        });
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [leads, sortField, sortDirection]);
+
   if (leads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -36,24 +74,60 @@ export function LeadsTable({
     );
   }
 
+  function SortableHeader({
+    field,
+    label,
+    className,
+  }: {
+    field: keyof Lead;
+    label: string;
+    className?: string;
+  }) {
+    const active = sortField === field;
+    return (
+      <TableHead
+        onClick={() => handleSort(field)}
+        className={cn(
+          "cursor-pointer select-none hover:text-foreground transition-colors group/header",
+          className
+        )}
+      >
+        <div className={cn("flex items-center gap-1", className?.includes("text-right") && "justify-end")}>
+          {label}
+          <span className="text-muted-foreground group-hover/header:text-foreground">
+            {active ? (
+              sortDirection === "asc" ? (
+                <ChevronUp className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )
+            ) : (
+              <ChevronDown className="size-3.5 opacity-0 group-hover/header:opacity-50 transition-opacity" />
+            )}
+          </span>
+        </div>
+      </TableHead>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-10" />
-            <TableHead>Nome</TableHead>
-            <TableHead>Nicho</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Venda</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
+            <SortableHeader field="nome" label="Nome" />
+            <SortableHeader field="nicho" label="Nicho" />
+            <SortableHeader field="status_prospeccao" label="Status" />
+            <SortableHeader field="venda_realizada" label="Venda" />
+            <SortableHeader field="data_contato" label="Data" />
+            <SortableHeader field="valor_venda" label="Valor" className="text-right" />
             <TableHead>Observações</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leads.map((lead) => (
+          {sortedLeads.map((lead) => (
             <TableRow key={lead.id}>
               <TableCell className="p-1 pl-3">
                 <WhatsAppButton phone={lead.whatsapp} message={lead.msg_a_mandar} />
