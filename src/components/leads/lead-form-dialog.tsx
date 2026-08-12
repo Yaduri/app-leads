@@ -56,13 +56,19 @@ export function LeadFormDialog({
 
   useEffect(() => {
     if (open) {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const todayLocal = `${year}-${month}-${day}`;
+
       setNome(lead?.nome ?? "");
       setNicho(lead?.nicho ?? "");
       setWhatsapp(lead?.whatsapp ?? "");
       setLinkPerfil(lead?.link_perfil ?? "");
       setStatus(lead?.status_prospeccao ?? "Novo Lead");
       setVenda(lead?.venda_realizada ?? "Em aberto");
-      setDataContato(lead?.data_contato ?? "");
+      setDataContato(lead?.data_contato ?? todayLocal);
       setValor(lead ? String(lead.valor_venda) : "0");
       setObservacoes(lead?.observacoes ?? "");
       setMsg(lead?.msg_a_mandar ?? "");
