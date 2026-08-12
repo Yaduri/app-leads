@@ -22,13 +22,15 @@ const NAV_ITEMS = [
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-function Logo() {
+function Logo({ name }: { name: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         <Target className="size-4" />
       </div>
-      <span className="text-sm font-semibold">CRM de Leads</span>
+      <span className="text-sm font-semibold truncate max-w-[140px]" title={name}>
+        {name}
+      </span>
     </div>
   );
 }
@@ -48,14 +50,20 @@ function LogoutButton() {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  userName = "CRM de Leads",
+}: {
+  children: React.ReactNode;
+  userName?: string;
+}) {
   const pathname = usePathname();
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       {/* Sidebar (desktop) */}
       <aside className="hidden w-60 shrink-0 flex-col gap-2 border-r bg-muted/20 p-4 md:flex">
-        <Logo />
+        <Logo name={userName} />
         <nav className="mt-4 flex flex-1 flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -85,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Barra superior (mobile) */}
       <header className="flex items-center justify-between gap-2 border-b p-4 md:hidden">
-        <Logo />
+        <Logo name={userName} />
         <LogoutButton />
       </header>
       <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-1 md:hidden">

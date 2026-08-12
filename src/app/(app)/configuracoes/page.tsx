@@ -30,6 +30,8 @@ export default async function ConfiguraacoesPage() {
     console.error("Error loading leads for settings page:", error);
   }
 
+  const userName = user.user_metadata?.user_name || "CRM de Leads";
+
   return (
     <div className="space-y-6">
       <div>
@@ -41,6 +43,7 @@ export default async function ConfiguraacoesPage() {
 
       <SettingsForm
         userEmail={user.email ?? ""}
+        initialUsername={userName}
         leads={(leads as Lead[]) ?? []}
       />
     </div>

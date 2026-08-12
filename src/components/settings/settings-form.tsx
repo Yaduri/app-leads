@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Download, AlertTriangle, ShieldCheck, Mail } from "lucide-react";
+import { Trash2, Download, AlertTriangle, ShieldCheck, Mail, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Papa from "papaparse";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -25,18 +27,44 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteAllLeads } from "@/lib/actions/settings";
+import { deleteAllLeads, updateUsername } from "@/lib/actions/settings";
 import type { Lead } from "@/lib/types";
 
 export function SettingsForm({
   userEmail,
+  initialUsername,
   leads,
 }: {
   userEmail: string;
+  initialUsername: string;
   leads: Lead[];
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [userName, setUserName] = useState(initialUsername);
+  const [savingName, setSavingName] = useState(false);
+
+  async function handleSaveName() {
+    if (!userName.trim()) {
+      toast.error("O nome de usuário não pode ficar em branco.");
+      return;
+    }
+    setSavingName(true);
+    try {
+      const result = await updateUsername(userName);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Nome do usuário atualizado!");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao atualizar o nome.");
+    } finally {
+      setSavingName(false);
+    }
+  }
 
   function handleExport() {
     if (leads.length === 0) {
@@ -105,13 +133,42 @@ export function SettingsForm({
             Detalhes do usuário autenticado no sistema.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Mail className="size-5" />
+        <CardContent className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Mail className="size-5" />
+            </div>
+            <div>
+              <div className="text-sm font-medium">E-mail de Acesso</div>
+              <div className="text-sm text-muted-foreground">{userEmail}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-medium">E-mail de Acesso</div>
-            <div className="text-sm text-muted-foreground">{userEmail}</div>
+
+          <div className="border-t pt-4 space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="username" className="text-sm font-semibold flex items-center gap-1.5">
+                <User className="size-4" />
+                Nome do Usuário / Sistema
+              </Label>
+              <CardDescription>
+                Este nome será exibido no menu lateral e na barra superior da aplicação.
+              </CardDescription>
+              <div className="flex flex-col sm:flex-row gap-2 max-w-md">
+                <Input
+                  id="username"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Ex: Yaduri"
+                  className="flex-1"
+                />
+                <Button onClick={handleSaveName} disabled={savingName} className="shrink-0 gap-1.5">
+                  {savingName ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : null}
+                  Salvar
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
