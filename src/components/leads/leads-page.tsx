@@ -179,12 +179,12 @@ export function LeadsPage({ leads }: { leads: Lead[] }) {
             {localLeads.length} cadastrados · {filtered.length} exibidos
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" render={<Link href="/importar" />}>
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <Button variant="outline" render={<Link href="/importar" />} className="flex-1 sm:flex-initial">
             <Upload className="size-4" />
             Importar CSV
           </Button>
-          <Button onClick={openNew}>
+          <Button onClick={openNew} className="flex-1 sm:flex-initial">
             <Plus className="size-4" />
             Novo lead
           </Button>
@@ -201,7 +201,7 @@ export function LeadsPage({ leads }: { leads: Lead[] }) {
             className="pl-9"
           />
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <Select value={nicho} onValueChange={(v) => setNicho(v as SelectValueOpt)}>
             <SelectTrigger className="min-w-36">
               <SelectValue placeholder="Nicho" />
