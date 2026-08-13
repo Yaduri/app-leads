@@ -33,6 +33,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -84,7 +85,11 @@ export function LeadsPage({ leads }: { leads: Lead[] }) {
         lead.nome.toLowerCase().includes(q) ||
         (digits !== "" && (lead.whatsapp ?? "").includes(digits));
       const matchNicho = nicho === "all" || lead.nicho === nicho;
-      const matchStatus = status === "all" || lead.status_prospeccao === status;
+      const matchStatus =
+        status === "all" ||
+        (status.startsWith("exclude-")
+          ? lead.status_prospeccao !== status.replace("exclude-", "")
+          : lead.status_prospeccao === status);
       const matchVenda = venda === "all" || lead.venda_realizada === venda;
       return matchSearch && matchNicho && matchStatus && matchVenda;
     });
@@ -223,6 +228,12 @@ export function LeadsPage({ leads }: { leads: Lead[] }) {
               {LEAD_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
+                </SelectItem>
+              ))}
+              <SelectSeparator />
+              {LEAD_STATUSES.map((s) => (
+                <SelectItem key={`exclude-${s}`} value={`exclude-${s}`}>
+                  Exceto: {s}
                 </SelectItem>
               ))}
             </SelectContent>
