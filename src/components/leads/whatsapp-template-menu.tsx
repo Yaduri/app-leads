@@ -112,20 +112,15 @@ export function WhatsAppTemplateMenu({
       {/* Dropdown com Modelos de Mensagens */}
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={
-            <Button
-              size="icon"
-              className={cn(
-                "bg-emerald-600 text-white hover:bg-emerald-500 rounded-l-none px-1 transition-all",
-                compact && "size-8 w-6",
-                label && "h-9 w-7",
-              )}
-              title="Escolher modelo de mensagem"
-            >
-              <ChevronDown className="size-3.5 opacity-80" />
-            </Button>
-          }
-        />
+          className={cn(
+            "inline-flex items-center justify-center bg-emerald-600 text-white hover:bg-emerald-500 rounded-r-lg rounded-l-none px-1 transition-all cursor-pointer outline-none active:scale-95",
+            compact && "size-8 w-6",
+            label && "h-9 w-7",
+          )}
+          title="Escolher modelo de mensagem"
+        >
+          <ChevronDown className="size-3.5 opacity-80" />
+        </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80 p-2 space-y-1">
           <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1">
             Modelos Rápidos (WhatsApp)
