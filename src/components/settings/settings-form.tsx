@@ -31,10 +31,12 @@ import { deleteAllLeads, updateUsername } from "@/lib/actions/settings";
 import type { Lead } from "@/lib/types";
 
 export function SettingsForm({
+  userId,
   userEmail,
   initialUsername,
   leads,
 }: {
+  userId?: string;
   userEmail: string;
   initialUsername: string;
   leads: Lead[];
@@ -49,8 +51,8 @@ export function SettingsForm({
 
   const endpointUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/api/leads`
-      : "https://seu-crm.vercel.app/api/leads";
+      ? `${window.location.origin}/api/leads${userId ? `?user_id=${userId}` : ""}`
+      : `https://seu-crm.vercel.app/api/leads${userId ? `?user_id=${userId}` : ""}`;
 
   const handleCopyEndpoint = () => {
     navigator.clipboard.writeText(endpointUrl);

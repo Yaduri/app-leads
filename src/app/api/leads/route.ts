@@ -61,8 +61,13 @@ export async function POST(req: NextRequest) {
 
     const supabase = createAdminClient();
 
-    // Determina o user_id de destino
-    let targetUserId = process.env.CRM_USER_ID || req.nextUrl.searchParams.get("user_id");
+    // Determina o user_id de destino (via env, query param, header ou body)
+    let targetUserId =
+      process.env.CRM_USER_ID ||
+      req.nextUrl.searchParams.get("user_id") ||
+      req.headers.get("x-user-id") ||
+      body?.user_id ||
+      rawList[0]?.user_id;
 
     if (!targetUserId) {
       // Busca o user_id do primeiro lead cadastrado ou do usuário ativo
@@ -76,9 +81,13 @@ export async function POST(req: NextRequest) {
         targetUserId = existingLead.user_id;
       } else {
         // Busca na tabela de usuários do Supabase
-        const { data: usersData, error: userError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
-        if (!userError && usersData?.users?.[0]?.id) {
-          targetUserId = usersData.users[0].id;
+        try {
+          const { data: usersData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
+          if (usersData?.users?.[0]?.id) {
+            targetUserId = usersData.users[0].id;
+          }
+        } catch {
+          // ignora se anon key não puder listar
         }
       }
     }
@@ -87,7 +96,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Nenhum usuário encontrado para associar os leads. Configure a variável CRM_USER_ID ou cadastre um lead no painel primeiro.",
+            "Nenhum usuário informado para associar os leads. Copie a URL completa com ?user_id=... na aba Configurações do seu CRM ou configure a variável CRM_USER_ID na Vercel.",
         },
         { status: 400 },
       );

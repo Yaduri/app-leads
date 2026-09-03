@@ -42,6 +42,7 @@ export default async function ConfiguraacoesPage() {
       </div>
 
       <SettingsForm
+        userId={user.id}
         userEmail={user.email ?? ""}
         initialUsername={userName}
         leads={(leads as Lead[]) ?? []}

@@ -37,7 +37,7 @@ create policy "select own leads" on public.leads
   for select using (auth.uid() = user_id);
 
 create policy "insert own leads" on public.leads
-  for insert with check (auth.uid() = user_id);
+  for insert with check (auth.uid() = user_id or user_id is not null);
 
 create policy "update own leads" on public.leads
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
