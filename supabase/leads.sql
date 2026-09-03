@@ -37,7 +37,8 @@ create policy "select own leads" on public.leads
   for select using (auth.uid() = user_id);
 
 create policy "insert own leads" on public.leads
-  for insert with check (auth.uid() = user_id or user_id is not null);
+  for insert to anon, authenticated
+  with check (user_id is not null);
 
 create policy "update own leads" on public.leads
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -47,7 +48,7 @@ create policy "delete own leads" on public.leads
 
 -- Garante que os roles do Supabase acessem a tabela
 grant select, insert, update, delete on table public.leads to authenticated;
-grant select on table public.leads to anon;
+grant select, insert on table public.leads to anon;
 
 -- =============================================================
 -- Indices para consultas comuns
