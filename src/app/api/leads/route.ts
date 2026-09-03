@@ -146,10 +146,9 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    const { data: insertedData, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from("leads")
-      .insert(leadsToInsert)
-      .select("id, nome, whatsapp, status_prospeccao");
+      .insert(leadsToInsert);
 
     if (insertError) {
       console.error("[CRM API /api/leads] Erro ao inserir leads:", insertError);
@@ -163,7 +162,6 @@ export async function POST(req: NextRequest) {
       success: true,
       message: `${leadsToInsert.length} ${leadsToInsert.length === 1 ? "lead sincronizado" : "leads sincronizados"} com sucesso no CRM!`,
       count: leadsToInsert.length,
-      leads: insertedData,
     });
   } catch (err: any) {
     console.error("[CRM API /api/leads] Erro inesperado:", err);
