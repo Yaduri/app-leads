@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { GripVertical, Pencil } from "lucide-react";
 
 import { SaleBadge } from "@/components/leads/status-badge";
-import { WhatsAppButton } from "@/components/leads/whatsapp-button";
+import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
 import { Button } from "@/components/ui/button";
 import { LEAD_STATUSES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format";
@@ -12,10 +12,10 @@ import type { Lead, LeadStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const DOT_COLORS: Record<LeadStatus, string> = {
-  "Novo Lead": "bg-sky-500",
-  "Em Andamento": "bg-amber-500",
-  "Em Negociação": "bg-violet-500",
-  Concluído: "bg-emerald-500",
+  "Novo Lead": "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.6)]",
+  "Em Andamento": "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]",
+  "Em Negociação": "bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.6)]",
+  Concluído: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]",
 };
 
 export function LeadsKanban({
@@ -68,16 +68,17 @@ export function LeadsKanban({
         const items = leads.filter(
           (lead) => lead.status_prospeccao === status,
         );
+        const columnTotalValue = items.reduce((sum, item) => sum + (item.valor_venda || 0), 0);
         const isOver = overColumn === status;
 
         return (
           <div
             key={status}
             className={cn(
-              "flex flex-col rounded-xl border transition-all duration-200",
+              "flex flex-col rounded-2xl border transition-all duration-200 shadow-sm",
               isOver
-                ? "border-primary bg-primary/[0.03] ring-2 ring-primary/20 scale-[1.01]"
-                : "border-border bg-muted/20"
+                ? "border-primary bg-primary/[0.04] ring-2 ring-primary/20 scale-[1.01]"
+                : "border-border/70 bg-card/40 backdrop-blur-xl"
             )}
             onDragOver={(e) => {
               e.preventDefault();
@@ -87,22 +88,33 @@ export function LeadsKanban({
             onDragLeave={(e) => handleDragLeave(e, status)}
             onDrop={(e) => handleDrop(e, status)}
           >
+            {/* Header da Coluna */}
             <div
               className={cn(
-                "flex items-center gap-2 border-b px-4 py-3 transition-colors duration-200",
-                isOver ? "bg-primary/5 border-primary/20" : "",
+                "flex items-center justify-between border-b border-border/70 px-4 py-3 transition-colors duration-200",
+                isOver ? "bg-primary/10 border-primary/20" : "bg-muted/20",
               )}
             >
-              <span className={cn("size-2.5 rounded-full", DOT_COLORS[status])} />
-              <span className="text-sm font-semibold">{status}</span>
-              <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {items.length}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={cn("size-2 rounded-full", DOT_COLORS[status])} />
+                <span className="text-sm font-semibold tracking-tight text-foreground">{status}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {columnTotalValue > 0 && (
+                  <span className="text-[11px] font-mono font-medium text-emerald-400">
+                    {formatCurrency(columnTotalValue)}
+                  </span>
+                )}
+                <span className="rounded-full bg-muted/80 px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground">
+                  {items.length}
+                </span>
+              </div>
             </div>
 
-            <div className="flex flex-1 flex-col gap-3 p-3 min-h-[400px]">
+            {/* Lista de Cards da Coluna */}
+            <div className="flex flex-1 flex-col gap-3 p-3 min-h-[420px]">
               {items.length === 0 && (
-                <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center text-xs text-muted-foreground">
+                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-12 text-center text-xs text-muted-foreground/60">
                   Arraste cards para cá
                 </div>
               )}
@@ -119,55 +131,58 @@ export function LeadsKanban({
                     }}
                     onDragEnd={() => setDraggingId(null)}
                     className={cn(
-                      "group cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 active:cursor-grabbing",
+                      "group cursor-grab rounded-xl border bg-card/70 backdrop-blur-md p-3.5 shadow-sm transition-all duration-200 active:cursor-grabbing",
                       isDraggingThis
-                        ? "opacity-20 border-dashed border-primary bg-primary/5 scale-[0.98]"
-                        : "hover:shadow-md hover:border-primary/30"
+                        ? "opacity-30 border-dashed border-primary bg-primary/10 scale-95 rotate-1 shadow-2xl"
+                        : "border-border/70 hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="line-clamp-2 text-sm font-semibold">
+                        <p className="line-clamp-2 text-sm font-semibold text-foreground">
                           {lead.nome}
                         </p>
                         {lead.nicho ? (
-                          <p className="mt-1 text-xs text-muted-foreground">
+                          <p className="mt-0.5 text-xs text-muted-foreground">
                             {lead.nicho}
                           </p>
                         ) : null}
                       </div>
-                      <GripVertical className="size-4 shrink-0 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors" />
+                      <GripVertical className="size-4 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <SaleBadge sale={lead.venda_realizada} />
                       {lead.valor_venda > 0 ? (
-                        <span className="text-sm font-semibold">
+                        <span className="font-mono text-xs font-bold text-foreground">
                           {formatCurrency(lead.valor_venda)}
                         </span>
                       ) : null}
                     </div>
 
                     {lead.msg_a_mandar ? (
-                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/80 bg-muted/30 p-2 rounded-lg border border-border/40">
                         {lead.msg_a_mandar}
                       </p>
                     ) : null}
 
-                    <div className="mt-3 flex items-center gap-2">
-                      <WhatsAppButton
+                    <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-border/40">
+                      <WhatsAppTemplateMenu
                         phone={lead.whatsapp}
-                        message={lead.msg_a_mandar}
+                        name={lead.nome}
+                        nicho={lead.nicho}
+                        defaultMessage={lead.msg_a_mandar}
                         label="WhatsApp"
+                        compact={false}
                       />
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="ml-auto h-8 w-8"
-                        title="Editar"
+                        className="size-8 text-muted-foreground hover:text-foreground"
+                        title="Editar lead"
                         onClick={() => onEdit(lead)}
                       >
-                        <Pencil className="size-4" />
+                        <Pencil className="size-3.5" />
                       </Button>
                     </div>
                   </div>

@@ -141,3 +141,48 @@ export async function importLeads(
   revalidatePath("/dashboard");
   return { ok: failed === 0, inserted, failed };
 }
+
+export async function bulkUpdateLeadStatus(
+  ids: string[],
+  nextStatus: LeadStatus,
+): Promise<ActionResult> {
+  if (ids.length === 0) return { ok: true };
+
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ status_prospeccao: nextStatus })
+    .in("id", ids)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function bulkDeleteLeads(
+  ids: string[],
+): Promise<ActionResult> {
+  if (ids.length === 0) return { ok: true };
+
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .delete()
+    .in("id", ids)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}

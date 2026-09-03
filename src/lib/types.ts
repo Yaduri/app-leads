@@ -6,6 +6,8 @@ export type LeadStatus =
 
 export type SaleStatus = "Sim" | "Não" | "Negociação" | "Em aberto";
 
+export type ActionResult = { ok: boolean; error?: string };
+
 export interface Lead {
   id: string;
   user_id: string;
