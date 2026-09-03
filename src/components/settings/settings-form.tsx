@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Download, AlertTriangle, ShieldCheck, Mail, User, Loader2 } from "lucide-react";
+import { Trash2, Download, AlertTriangle, ShieldCheck, Mail, User, Loader2, Copy, Check, Zap, Code2 } from "lucide-react";
 import { toast } from "sonner";
 import Papa from "papaparse";
 
@@ -43,6 +43,21 @@ export function SettingsForm({
   const [deleting, setDeleting] = useState(false);
   const [userName, setUserName] = useState(initialUsername);
   const [savingName, setSavingName] = useState(false);
+
+  const [copiedEndpoint, setCopiedEndpoint] = useState(false);
+  const [showCode, setShowCode] = useState(false);
+
+  const endpointUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/leads`
+      : "https://seu-crm.vercel.app/api/leads";
+
+  const handleCopyEndpoint = () => {
+    navigator.clipboard.writeText(endpointUrl);
+    setCopiedEndpoint(true);
+    toast.success("URL da API copiada para a área de transferência!");
+    setTimeout(() => setCopiedEndpoint(false), 2000);
+  };
 
   async function handleSaveName() {
     if (!userName.trim()) {
@@ -169,6 +184,98 @@ export function SettingsForm({
                 </Button>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Integração de Leads (API / Webhook) */}
+      <Card className="border-primary/30 bg-card/60 backdrop-blur-xl">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Zap className="size-4 text-primary" />
+              Integração Externa (API / Webhook)
+            </CardTitle>
+            <span className="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">
+              Pronto para Conectar
+            </span>
+          </div>
+          <CardDescription>
+            Conecte o seu captador de leads (LeadHunter Pro, bots ou formulários externos) para sincronizar leads diretamente aqui.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">URL do Endpoint de Sincronização (POST)</Label>
+            <div className="flex gap-2">
+              <Input
+                readOnly
+                value={endpointUrl}
+                className="font-mono text-xs bg-muted/40 text-foreground flex-1"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyEndpoint}
+                className="shrink-0 gap-1.5 text-xs h-9"
+              >
+                {copiedEndpoint ? (
+                  <>
+                    <Check className="size-3.5 text-emerald-400" />
+                    Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3.5" />
+                    Copiar URL
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Coloque esta URL na configuração do seu script <code>crm_sync.py</code>.
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-border/50">
+            <button
+              type="button"
+              onClick={() => setShowCode(!showCode)}
+              className="text-xs text-primary font-medium hover:underline flex items-center gap-1.5"
+            >
+              <Code2 className="size-3.5" />
+              {showCode ? "Ocultar exemplo de código Python" : "Ver como enviar pelo Python (crm_sync.py)"}
+            </button>
+
+            {showCode && (
+              <div className="mt-3 rounded-xl bg-muted/50 p-3 border border-border/70 text-xs font-mono overflow-x-auto space-y-2">
+                <p className="text-muted-foreground font-sans text-[11px]">
+                  Exemplo de envio no módulo <strong>crm_sync.py</strong>:
+                </p>
+                <pre className="text-foreground/90 whitespace-pre">
+{`import requests
+
+url = "${endpointUrl}"
+headers = {
+    "Content-Type": "application/json",
+    # Opcional (se configurou CRM_API_KEY na Vercel):
+    # "Authorization": "Bearer SEU_TOKEN_AQUI"
+}
+
+payload = {
+    "nome": "Clínica Dra. Mariana Maldonado",
+    "nicho": "Estética",
+    "whatsapp": "11945187012",
+    "link_perfil": "https://instagram.com/marianamaldonado",
+    "msg_a_mandar": "Olá Dra. Mariana, vi seu site e preparei uma proposta...",
+    "observacoes": "Score: 92/100 | Diagnóstico: Site não responsivo e sem WhatsApp direto."
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())`}
+                </pre>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
