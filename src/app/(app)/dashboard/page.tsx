@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { MetricCards } from "@/components/dashboard/metric-cards";
 import { NichoDistribution } from "@/components/dashboard/nicho-distribution";
+import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -10,12 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  const supabase = await createClient();
 
   const [{ count: total }, { data: vendasRows }, { count: negociacaoCount }, { count: followUpCount }, { data: nichoRows }] =
     await Promise.all([

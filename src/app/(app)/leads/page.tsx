@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { LeadsPage } from "@/components/leads/leads-page";
+import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Lead } from "@/lib/types";
 
@@ -10,13 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function LeadsRoute() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  const supabase = await createClient();
   const { data } = await supabase
     .from("leads")
     .select("*")

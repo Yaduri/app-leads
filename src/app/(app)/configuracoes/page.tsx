@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { SettingsForm } from "@/components/settings/settings-form";
+import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Lead } from "@/lib/types";
 
@@ -10,17 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ConfiguraacoesPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
 
-  // Buscar todos os leads para passar ao exportador e exibir a quantidade
+  const supabase = await createClient();
   const { data: leads, error } = await supabase
     .from("leads")
     .select("*")

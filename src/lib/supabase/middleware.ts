@@ -16,6 +16,13 @@ function isProtectedPath(pathname: string) {
  *  - redirecionar usuarios autenticados que tentam acessar /login
  */
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Rotas de API não necessitam de verificação de cookies de sessão no middleware
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -46,8 +53,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   if (!user && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
