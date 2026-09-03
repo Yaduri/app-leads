@@ -146,9 +146,67 @@ export async function POST(req: NextRequest) {
       };
     });
 
+    // 1. Deduplica dentro do próprio lote recebido (evita duplicatas no mesmo envio)
+    const seenPhonesInBatch = new Set<string>();
+    const batchDeduplicated: LeadInsert[] = [];
+    let internalDuplicates = 0;
+
+    for (const lead of leadsToInsert) {
+      if (lead.whatsapp) {
+        if (seenPhonesInBatch.has(lead.whatsapp)) {
+          internalDuplicates++;
+          continue;
+        }
+        seenPhonesInBatch.add(lead.whatsapp);
+      }
+      batchDeduplicated.push(lead);
+    }
+
+    // 2. Busca no banco de dados se algum desses telefones já está cadastrado
+    const phonesToCheck = Array.from(seenPhonesInBatch);
+    const existingPhones = new Set<string>();
+
+    if (phonesToCheck.length > 0) {
+      try {
+        const { data: found } = await supabase
+          .from("leads")
+          .select("whatsapp")
+          .eq("user_id", targetUserId)
+          .in("whatsapp", phonesToCheck);
+
+        if (found) {
+          found.forEach((r) => {
+            if (r.whatsapp) existingPhones.add(r.whatsapp);
+          });
+        }
+      } catch (err) {
+        console.warn("[CRM API /api/leads] Aviso ao verificar telefones existentes:", err);
+      }
+    }
+
+    // 3. Filtra apenas os leads novos
+    const newLeads = batchDeduplicated.filter((lead) => {
+      if (lead.whatsapp && existingPhones.has(lead.whatsapp)) {
+        return false;
+      }
+      return true;
+    });
+
+    const totalSkipped = leadsToInsert.length - newLeads.length;
+
+    // Se todos já existiam no banco, retorna resposta amigável sem erro 400/500
+    if (newLeads.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "Nenhum lead novo cadastrado. O telefone informado já está registrado na sua base do CRM.",
+        count: 0,
+        skipped: totalSkipped,
+      });
+    }
+
     const { error: insertError } = await supabase
       .from("leads")
-      .insert(leadsToInsert);
+      .insert(newLeads);
 
     if (insertError) {
       console.error("[CRM API /api/leads] Erro ao inserir leads:", insertError);
@@ -160,8 +218,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `${leadsToInsert.length} ${leadsToInsert.length === 1 ? "lead sincronizado" : "leads sincronizados"} com sucesso no CRM!`,
-      count: leadsToInsert.length,
+      message: `${newLeads.length} ${newLeads.length === 1 ? "lead sincronizado" : "leads sincronizados"} com sucesso no CRM!${
+        totalSkipped > 0 ? ` (${totalSkipped} ignorado(s) por já estarem cadastrados)` : ""
+      }`,
+      count: newLeads.length,
+      skipped: totalSkipped,
     });
   } catch (err: any) {
     console.error("[CRM API /api/leads] Erro inesperado:", err);
