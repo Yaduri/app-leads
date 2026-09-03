@@ -13,6 +13,7 @@ import {
 
 import { logoutAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -105,7 +106,8 @@ export function AppShell({
           </nav>
         </div>
 
-        <div className="border-t border-border/60 pt-3">
+        <div className="border-t border-border/60 pt-3 flex flex-col gap-1">
+          <ThemeToggle />
           <LogoutButton />
         </div>
       </aside>
@@ -113,7 +115,10 @@ export function AppShell({
       {/* Header Superior (Mobile) */}
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/70 bg-background/80 backdrop-blur-lg px-4 py-3 md:hidden">
         <Logo name={userName} />
-        <LogoutButton compact />
+        <div className="flex items-center gap-1">
+          <ThemeToggle compact />
+          <LogoutButton compact />
+        </div>
       </header>
 
       {/* Conteúdo Principal */}

@@ -73,6 +73,10 @@ export function normalizeStatus(raw: string): LeadStatus {
     "em andamento": "Em Andamento",
     "em negociacao": "Em Negociação",
     concluido: "Concluído",
+    "sem interesse": "Sem interesse",
+    desistiu: "Sem interesse",
+    perdido: "Sem interesse",
+    "nao tem interesse": "Sem interesse",
   };
   if (k in map) return map[k];
   return (LEAD_STATUSES as string[]).includes(raw) ? (raw as LeadStatus) : "Novo Lead";

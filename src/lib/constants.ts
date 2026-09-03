@@ -5,6 +5,7 @@ export const LEAD_STATUSES: LeadStatus[] = [
   "Em Andamento",
   "Em Negociação",
   "Concluído",
+  "Sem interesse",
 ];
 
 export const SALE_STATUSES: SaleStatus[] = ["Sim", "Não", "Negociação", "Em aberto"];
@@ -25,6 +26,7 @@ export const LEAD_STATUS_CLASSES: Record<LeadStatus, string> = {
   "Em Andamento": "bg-amber-500/10 text-amber-400 border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
   "Em Negociação": "bg-violet-500/10 text-violet-400 border-violet-500/25 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30",
   Concluído: "bg-emerald-500/10 text-emerald-400 border-emerald-500/25 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
+  "Sem interesse": "bg-rose-500/10 text-rose-400 border-rose-500/25 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30",
 };
 
 export const SALE_STATUS_CLASSES: Record<SaleStatus, string> = {

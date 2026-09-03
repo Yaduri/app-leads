@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import type { LeadInsert, LeadStatus } from "@/lib/types";
+import type { LeadInsert, LeadStatus, SaleStatus } from "@/lib/types";
 
 export type ActionResult =
   | { ok: true }
@@ -86,6 +86,48 @@ export async function updateLeadStatus(
   const { error } = await supabase
     .from("leads")
     .update({ status_prospeccao: status })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateLeadSale(
+  id: string,
+  sale: SaleStatus,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ venda_realizada: sale })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateLeadValue(
+  id: string,
+  valor: number,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ valor_venda: valor })
     .eq("id", id)
     .eq("user_id", userId);
 

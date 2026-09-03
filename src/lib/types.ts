@@ -2,7 +2,8 @@ export type LeadStatus =
   | "Novo Lead"
   | "Em Andamento"
   | "Em Negociação"
-  | "Concluído";
+  | "Concluído"
+  | "Sem interesse";
 
 export type SaleStatus = "Sim" | "Não" | "Negociação" | "Em aberto";
 

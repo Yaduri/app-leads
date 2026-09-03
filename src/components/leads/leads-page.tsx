@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { LeadFormDialog, type LeadFormValues } from "@/components/leads/lead-form-dialog";
 import { LeadsKanban } from "@/components/leads/leads-kanban";
 import { LeadsTable } from "@/components/leads/leads-table";
+import { LeadDetailSheet } from "@/components/leads/lead-detail-sheet";
 import { BatchActionsBar } from "@/components/leads/batch-actions-bar";
 import {
   AlertDialog,
@@ -48,7 +49,10 @@ import {
   deleteLead,
   updateLead,
   updateLeadStatus,
+  updateLeadSale,
+  updateLeadValue,
 } from "@/lib/actions/leads";
+import { fireCelebrationConfetti } from "@/lib/confetti";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
 import type { ActionResult, Lead, LeadStatus, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -63,9 +67,19 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
 
+  const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+
   useEffect(() => {
     setLocalLeads(initialLeads);
   }, [initialLeads]);
+
+  // Sync viewingLead if localLeads update
+  useEffect(() => {
+    if (viewingLead) {
+      const updated = localLeads.find((l) => l.id === viewingLead.id);
+      if (updated) setViewingLead(updated);
+    }
+  }, [localLeads, viewingLead]);
 
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
@@ -185,6 +199,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       ls.map((l) => (l.id === id ? { ...l, status_prospeccao: nextStatus } : l)),
     );
 
+    if (nextStatus === "Concluído") {
+      fireCelebrationConfetti();
+    }
+
     const result = await updateLeadStatus(id, nextStatus);
     if (!result.ok) {
       setLocalLeads((ls) =>
@@ -195,6 +213,57 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       toast.error(result.error);
       return;
     }
+    toast.success(`Status alterado para "${nextStatus}"`);
+    router.refresh();
+  }
+
+  async function handleSaleChange(id: string, nextSale: SaleStatus) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, venda_realizada: nextSale } : l)),
+    );
+
+    if (nextSale === "Sim") {
+      fireCelebrationConfetti();
+      toast.success("🎉 Parabéns pela venda realizada!");
+    } else {
+      toast.success(`Venda alterada para "${nextSale}"`);
+    }
+
+    const result = await updateLeadSale(id, nextSale);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, venda_realizada: previous.venda_realizada } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function handleValueChange(id: string, nextValue: number) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, valor_venda: nextValue } : l)),
+    );
+
+    const result = await updateLeadValue(id, nextValue);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, valor_venda: previous.valor_venda } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Valor atualizado!");
     router.refresh();
   }
 
@@ -397,6 +466,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           leads={filtered}
           onEdit={openEdit}
           onDelete={setDeletingLead}
+          onSelectLead={(lead) => setViewingLead(lead)}
+          onStatusChange={handleStatusChange}
+          onSaleChange={handleSaleChange}
+          onValueChange={handleValueChange}
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onSelectAll={handleSelectAll}
@@ -406,8 +479,19 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           leads={filtered}
           onEdit={openEdit}
           onStatusChange={handleStatusChange}
+          onSelectLead={(lead) => setViewingLead(lead)}
         />
       )}
+
+      {/* Gaveta Lateral de Detalhes do Lead (Slide-over) */}
+      <LeadDetailSheet
+        lead={viewingLead}
+        open={viewingLead !== null}
+        onOpenChange={(open) => !open && setViewingLead(null)}
+        onEdit={openEdit}
+        onStatusChange={handleStatusChange}
+        onSaleChange={handleSaleChange}
+      />
 
       {/* Barra Flutuante de Ações em Massa */}
       <BatchActionsBar

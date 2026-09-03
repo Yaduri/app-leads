@@ -12,7 +12,7 @@ create table if not exists public.leads (
   whatsapp text,
   link_perfil text,
   status_prospeccao text not null default 'Novo Lead'
-    check (status_prospeccao in ('Novo Lead', 'Em Andamento', 'Em Negociação', 'Concluído')),
+    check (status_prospeccao in ('Novo Lead', 'Em Andamento', 'Em Negociação', 'Concluído', 'Sem interesse')),
   venda_realizada text not null default 'Em aberto'
     check (venda_realizada in ('Sim', 'Não', 'Negociação', 'Em aberto')),
   observacoes text,

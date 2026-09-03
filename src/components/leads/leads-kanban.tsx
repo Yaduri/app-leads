@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { GripVertical, Pencil } from "lucide-react";
+import { GripVertical, Pencil, AlertCircle } from "lucide-react";
 
 import { SaleBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
@@ -16,16 +16,19 @@ const DOT_COLORS: Record<LeadStatus, string> = {
   "Em Andamento": "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]",
   "Em Negociação": "bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.6)]",
   Concluído: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]",
+  "Sem interesse": "bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.6)]",
 };
 
 export function LeadsKanban({
   leads,
   onEdit,
   onStatusChange,
+  onSelectLead,
 }: {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
   onStatusChange: (id: string, status: LeadStatus) => void;
+  onSelectLead?: (lead: Lead) => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null);
@@ -63,7 +66,7 @@ export function LeadsKanban({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {LEAD_STATUSES.map((status) => {
         const items = leads.filter(
           (lead) => lead.status_prospeccao === status,
@@ -138,8 +141,12 @@ export function LeadsKanban({
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="line-clamp-2 text-sm font-semibold text-foreground">
+                      <div
+                        className="min-w-0 cursor-pointer"
+                        onClick={() => onSelectLead && onSelectLead(lead)}
+                        title="Ver detalhes na gaveta"
+                      >
+                        <p className="line-clamp-2 text-sm font-semibold text-foreground hover:text-primary transition-colors">
                           {lead.nome}
                         </p>
                         {lead.nicho ? (
@@ -159,6 +166,13 @@ export function LeadsKanban({
                         </span>
                       ) : null}
                     </div>
+
+                    {lead.data_contato && lead.status_prospeccao !== "Concluído" && lead.status_prospeccao !== "Sem interesse" && new Date(lead.data_contato + "T00:00:00") < new Date(new Date().setHours(0,0,0,0)) && (
+                      <div className="mt-2 flex items-center gap-1.5 text-[10px] font-medium text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                        <AlertCircle className="size-3 shrink-0" />
+                        <span>Follow-up atrasado</span>
+                      </div>
+                    )}
 
                     {lead.msg_a_mandar ? (
                       <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/80 bg-muted/30 p-2 rounded-lg border border-border/40">

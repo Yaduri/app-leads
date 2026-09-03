@@ -11,6 +11,7 @@ const STATUS_DOT: Record<LeadStatus, string> = {
   "Em Andamento": "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]",
   "Em Negociação": "bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.6)]",
   Concluído: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]",
+  "Sem interesse": "bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.6)]",
 };
 
 export function StatusBadge({ status }: { status: LeadStatus }) {
