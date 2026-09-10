@@ -93,7 +93,10 @@ export function WhatsAppTemplateMenu({
   };
 
   return (
-    <div className="inline-flex items-center rounded-lg shadow-sm">
+    <div
+      className="inline-flex items-center rounded-lg shadow-sm"
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Botão Principal de Envio Rápido */}
       <Button
         render={<a href={primaryUrl || "#"} target="_blank" rel="noopener noreferrer" />}
@@ -112,6 +115,7 @@ export function WhatsAppTemplateMenu({
       {/* Dropdown com Modelos de Mensagens */}
       <DropdownMenu>
         <DropdownMenuTrigger
+          type="button"
           className={cn(
             "inline-flex items-center justify-center bg-emerald-600 text-white hover:bg-emerald-500 rounded-r-lg rounded-l-none px-1 transition-all cursor-pointer outline-none active:scale-95",
             compact && "size-8 w-6",
