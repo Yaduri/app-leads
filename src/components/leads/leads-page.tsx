@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  AlertCircle,
   Columns3,
   Flame,
   ListFilter,
@@ -51,15 +52,17 @@ import {
   updateLeadStatus,
   updateLeadSale,
   updateLeadValue,
+  updateLeadNextContact,
 } from "@/lib/actions/leads";
 import { fireCelebrationConfetti } from "@/lib/confetti";
+import { getFollowUpInfo } from "@/lib/follow-up";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
 import type { ActionResult, Lead, LeadStatus, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "table" | "kanban";
 type SelectValueOpt = string;
-type QuickFilterType = "all" | "negociacao" | "vendas" | "hoje";
+type QuickFilterType = "all" | "hoje" | "atrasados" | "negociacao" | "vendas";
 
 export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   const router = useRouter();
@@ -91,14 +94,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
 
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }, []);
-
   const nichoOptions = useMemo(() => {
     const fromData = localLeads
       .map((l) => l.nicho)
@@ -106,19 +101,47 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     return Array.from(new Set([...NICHOS, ...fromData]));
   }, [localLeads]);
 
+  const smartCounts = useMemo(() => {
+    let hoje = 0;
+    let atrasados = 0;
+    let negociacao = 0;
+    let vendas = 0;
+
+    for (const lead of localLeads) {
+      const follow = getFollowUpInfo(lead);
+      if (follow.isToday) hoje++;
+      if (follow.isOverdue) atrasados++;
+      if (lead.status_prospeccao === "Em Negociação") negociacao++;
+      if (lead.venda_realizada === "Sim") vendas++;
+    }
+
+    return {
+      all: localLeads.length,
+      hoje,
+      atrasados,
+      negociacao,
+      vendas,
+    };
+  }, [localLeads]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const digits = q.replace(/\D/g, "");
     return localLeads.filter((lead) => {
-      // Quick filter chips
+      // Smart Views Quick filters
       if (quickFilter === "negociacao" && lead.status_prospeccao !== "Em Negociação") {
         return false;
       }
       if (quickFilter === "vendas" && lead.venda_realizada !== "Sim") {
         return false;
       }
-      if (quickFilter === "hoje" && lead.data_contato !== todayStr) {
-        return false;
+      if (quickFilter === "hoje") {
+        const follow = getFollowUpInfo(lead);
+        if (!follow.isToday) return false;
+      }
+      if (quickFilter === "atrasados") {
+        const follow = getFollowUpInfo(lead);
+        if (!follow.isOverdue) return false;
       }
 
       const matchSearch =
@@ -134,7 +157,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       const matchVenda = venda === "all" || lead.venda_realizada === venda;
       return matchSearch && matchNicho && matchStatus && matchVenda;
     });
-  }, [localLeads, search, nicho, status, venda, quickFilter, todayStr]);
+  }, [localLeads, search, nicho, status, venda, quickFilter]);
 
   const handleToggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
@@ -267,6 +290,30 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     router.refresh();
   }
 
+  async function handleNextContactChange(id: string, nextDate: string | null) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, data_proximo_contato: nextDate } : l)),
+    );
+
+    const result = await updateLeadNextContact(id, nextDate);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id
+            ? { ...l, data_proximo_contato: previous.data_proximo_contato }
+            : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success(nextDate ? "Follow-up agendado!" : "Follow-up desmarcado");
+    router.refresh();
+  }
+
   const hasFilters =
     search.trim() !== "" ||
     nicho !== "all" ||
@@ -316,9 +363,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         </div>
       </div>
 
-      {/* Quick Filter Chips (1-Clique) */}
+      {/* Smart Views / Abas Rápidas com Contadores Dinâmicos (1-Clique) */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
+          type="button"
           onClick={() => setQuickFilter("all")}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
@@ -328,33 +376,21 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           )}
         >
           <Sparkles className="size-3.5" />
-          Todos
+          <span>Todos</span>
+          <span
+            className={cn(
+              "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+              quickFilter === "all"
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "bg-muted text-muted-foreground",
+            )}
+          >
+            {smartCounts.all}
+          </span>
         </button>
+
         <button
-          onClick={() => setQuickFilter("negociacao")}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
-            quickFilter === "negociacao"
-              ? "bg-violet-500 text-white border-violet-600 shadow-sm"
-              : "bg-card/50 text-muted-foreground border-border/70 hover:text-violet-400 hover:bg-card",
-          )}
-        >
-          <Flame className="size-3.5 text-violet-400" />
-          Em Negociação
-        </button>
-        <button
-          onClick={() => setQuickFilter("vendas")}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
-            quickFilter === "vendas"
-              ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
-              : "bg-card/50 text-muted-foreground border-border/70 hover:text-emerald-400 hover:bg-card",
-          )}
-        >
-          <CheckCircle2 className="size-3.5 text-emerald-400" />
-          Vendas Fechadas
-        </button>
-        <button
+          type="button"
           onClick={() => setQuickFilter("hoje")}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
@@ -364,7 +400,97 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           )}
         >
           <Calendar className="size-3.5 text-sky-400" />
-          Contato Hoje
+          <span>Para Contatar Hoje</span>
+          {smartCounts.hoje > 0 && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                quickFilter === "hoje"
+                  ? "bg-white/25 text-white"
+                  : "bg-sky-500/15 text-sky-500 font-bold",
+              )}
+            >
+              {smartCounts.hoje}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setQuickFilter("atrasados")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            quickFilter === "atrasados"
+              ? "bg-rose-600 text-white border-rose-700 shadow-sm"
+              : "bg-card/50 text-muted-foreground border-border/70 hover:text-rose-400 hover:bg-card",
+          )}
+        >
+          <AlertCircle className="size-3.5 text-rose-400" />
+          <span>Follow-up Atrasado</span>
+          {smartCounts.atrasados > 0 && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                quickFilter === "atrasados"
+                  ? "bg-white/25 text-white"
+                  : "bg-rose-500/20 text-rose-500 font-bold",
+              )}
+            >
+              {smartCounts.atrasados}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setQuickFilter("negociacao")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            quickFilter === "negociacao"
+              ? "bg-violet-600 text-white border-violet-700 shadow-sm"
+              : "bg-card/50 text-muted-foreground border-border/70 hover:text-violet-400 hover:bg-card",
+          )}
+        >
+          <Flame className="size-3.5 text-violet-400" />
+          <span>Em Negociação</span>
+          {smartCounts.negociacao > 0 && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                quickFilter === "negociacao"
+                  ? "bg-white/25 text-white"
+                  : "bg-violet-500/15 text-violet-500 font-bold",
+              )}
+            >
+              {smartCounts.negociacao}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setQuickFilter("vendas")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            quickFilter === "vendas"
+              ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
+              : "bg-card/50 text-muted-foreground border-border/70 hover:text-emerald-400 hover:bg-card",
+          )}
+        >
+          <CheckCircle2 className="size-3.5 text-emerald-400" />
+          <span>Vendas Fechadas</span>
+          {smartCounts.vendas > 0 && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                quickFilter === "vendas"
+                  ? "bg-white/25 text-white"
+                  : "bg-emerald-500/15 text-emerald-500 font-bold",
+              )}
+            >
+              {smartCounts.vendas}
+            </span>
+          )}
         </button>
       </div>
 
@@ -470,6 +596,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           onStatusChange={handleStatusChange}
           onSaleChange={handleSaleChange}
           onValueChange={handleValueChange}
+          onNextContactChange={handleNextContactChange}
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onSelectAll={handleSelectAll}
@@ -480,6 +607,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           onEdit={openEdit}
           onStatusChange={handleStatusChange}
           onSelectLead={(lead) => setViewingLead(lead)}
+          onNextContactChange={handleNextContactChange}
         />
       )}
 
@@ -491,6 +619,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         onEdit={openEdit}
         onStatusChange={handleStatusChange}
         onSaleChange={handleSaleChange}
+        onNextContactChange={handleNextContactChange}
       />
 
       {/* Barra Flutuante de Ações em Massa */}

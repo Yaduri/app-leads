@@ -5,6 +5,7 @@ import { GripVertical, Pencil, AlertCircle } from "lucide-react";
 
 import { SaleBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
+import { QuickFollowupPicker } from "@/components/leads/quick-followup-picker";
 import { Button } from "@/components/ui/button";
 import { LEAD_STATUSES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format";
@@ -12,11 +13,11 @@ import type { Lead, LeadStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const DOT_COLORS: Record<LeadStatus, string> = {
-  "Novo Lead": "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.6)]",
-  "Em Andamento": "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]",
-  "Em Negociação": "bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.6)]",
-  Concluído: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]",
-  "Sem interesse": "bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.6)]",
+  "Novo Lead": "glow-blue",
+  "Em Andamento": "glow-amber",
+  "Em Negociação": "glow-purple",
+  Concluído: "glow-emerald",
+  "Sem interesse": "glow-rose",
 };
 
 export function LeadsKanban({
@@ -24,11 +25,13 @@ export function LeadsKanban({
   onEdit,
   onStatusChange,
   onSelectLead,
+  onNextContactChange,
 }: {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
   onStatusChange: (id: string, status: LeadStatus) => void;
   onSelectLead?: (lead: Lead) => void;
+  onNextContactChange?: (id: string, date: string | null) => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null);
@@ -158,21 +161,28 @@ export function LeadsKanban({
                       <GripVertical className="size-4 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <SaleBadge sale={lead.venda_realizada} />
-                      {lead.valor_venda > 0 ? (
-                        <span className="font-mono text-xs font-bold text-foreground">
-                          {formatCurrency(lead.valor_venda)}
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {lead.data_contato && lead.status_prospeccao !== "Concluído" && lead.status_prospeccao !== "Sem interesse" && new Date(lead.data_contato + "T00:00:00") < new Date(new Date().setHours(0,0,0,0)) && (
-                      <div className="mt-2 flex items-center gap-1.5 text-[10px] font-medium text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                        <AlertCircle className="size-3 shrink-0" />
-                        <span>Follow-up atrasado</span>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <SaleBadge sale={lead.venda_realizada} />
+                        {lead.valor_venda > 0 ? (
+                          <span className="font-mono text-xs font-bold text-foreground">
+                            {formatCurrency(lead.valor_venda)}
+                          </span>
+                        ) : null}
                       </div>
-                    )}
+
+                      {onNextContactChange && (
+                        <QuickFollowupPicker
+                          leadId={lead.id}
+                          dataProximoContato={lead.data_proximo_contato}
+                          dataContato={lead.data_contato}
+                          statusProspeccao={lead.status_prospeccao}
+                          vendaRealizada={lead.venda_realizada}
+                          onDateChange={onNextContactChange}
+                          compact
+                        />
+                      )}
+                    </div>
 
                     {lead.msg_a_mandar ? (
                       <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/80 bg-muted/30 p-2 rounded-lg border border-border/40">

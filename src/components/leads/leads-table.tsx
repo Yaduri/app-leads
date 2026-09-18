@@ -16,6 +16,7 @@ import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu"
 import { InlineStatusSelect } from "@/components/leads/inline-status-select";
 import { InlineSaleSelect } from "@/components/leads/inline-sale-select";
 import { InlineValueEdit } from "@/components/leads/inline-value-edit";
+import { QuickFollowupPicker } from "@/components/leads/quick-followup-picker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDateBR } from "@/lib/format";
+import { formatSimpleDate } from "@/lib/follow-up";
 import type { Lead, LeadStatus, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +40,7 @@ interface LeadsTableProps {
   onStatusChange?: (id: string, status: LeadStatus) => void;
   onSaleChange?: (id: string, sale: SaleStatus) => void;
   onValueChange?: (id: string, val: number) => void;
+  onNextContactChange?: (id: string, date: string | null) => void;
   selectedIds?: string[];
   onToggleSelect?: (id: string) => void;
   onSelectAll?: () => void;
@@ -63,6 +66,7 @@ export function LeadsTable({
   onStatusChange,
   onSaleChange,
   onValueChange,
+  onNextContactChange,
   selectedIds = [],
   onToggleSelect,
   onSelectAll,
@@ -270,10 +274,24 @@ export function LeadsTable({
                 </p>
               )}
 
-              <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                <span className="text-[11px] text-muted-foreground font-mono">
-                  {formatDateBR(lead.data_contato)}
-                </span>
+              <div className="flex items-center justify-between pt-2 border-t border-border/40 gap-2">
+                <div className="flex items-center gap-2">
+                  {onNextContactChange ? (
+                    <QuickFollowupPicker
+                      leadId={lead.id}
+                      dataProximoContato={lead.data_proximo_contato}
+                      dataContato={lead.data_contato}
+                      statusProspeccao={lead.status_prospeccao}
+                      vendaRealizada={lead.venda_realizada}
+                      onDateChange={onNextContactChange}
+                      compact
+                    />
+                  ) : (
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      {formatDateBR(lead.data_contato)}
+                    </span>
+                  )}
+                </div>
                 <WhatsAppTemplateMenu
                   phone={lead.whatsapp}
                   name={lead.nome}
@@ -307,7 +325,8 @@ export function LeadsTable({
                 <SortableHeader field="nicho" label="Nicho" />
                 <SortableHeader field="status_prospeccao" label="Status" />
                 <SortableHeader field="venda_realizada" label="Venda" />
-                <SortableHeader field="data_contato" label="Contato" />
+                <SortableHeader field="data_contato" label="Último Contato" />
+                <SortableHeader field="data_proximo_contato" label="Próximo Follow-up" />
                 <SortableHeader field="valor_venda" label="Valor" className="text-right" />
                 <TableHead className="max-w-[180px]">Observações</TableHead>
                 <TableHead className="text-right pr-4">Opções</TableHead>
@@ -389,15 +408,23 @@ export function LeadsTable({
                       )}
                     </TableCell>
                     <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
-                      <div className="flex flex-col gap-0.5">
-                        <span>{formatDateBR(lead.data_contato)}</span>
-                        {followUp && (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-medium">
-                            <span className="size-1.5 rounded-full bg-amber-400 animate-ping" />
-                            Atrasado +{followUp.days}d
-                          </span>
-                        )}
-                      </div>
+                      <span>{formatDateBR(lead.data_contato)}</span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {onNextContactChange ? (
+                        <QuickFollowupPicker
+                          leadId={lead.id}
+                          dataProximoContato={lead.data_proximo_contato}
+                          dataContato={lead.data_contato}
+                          statusProspeccao={lead.status_prospeccao}
+                          vendaRealizada={lead.venda_realizada}
+                          onDateChange={onNextContactChange}
+                        />
+                      ) : (
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {formatSimpleDate(lead.data_proximo_contato)}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       {onValueChange ? (

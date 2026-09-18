@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { LEAD_STATUSES, SALE_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatDateBR } from "@/lib/format";
+import { formatSimpleDate, getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
 import type { Lead, LeadStatus, SaleStatus } from "@/lib/types";
 
 interface LeadDetailSheetProps {
@@ -42,6 +43,7 @@ interface LeadDetailSheetProps {
   onEdit: (lead: Lead) => void;
   onStatusChange: (id: string, status: LeadStatus) => void;
   onSaleChange?: (id: string, sale: SaleStatus) => void;
+  onNextContactChange?: (id: string, nextDate: string | null) => void;
 }
 
 export function LeadDetailSheet({
@@ -51,26 +53,16 @@ export function LeadDetailSheet({
   onEdit,
   onStatusChange,
   onSaleChange,
+  onNextContactChange,
 }: LeadDetailSheetProps) {
   if (!lead) return null;
 
-  const isOverdue = (() => {
-    if (!lead.data_contato) return false;
-    if (lead.status_prospeccao === "Concluído" || lead.status_prospeccao === "Sem interesse") return false;
-    const contactDate = new Date(lead.data_contato + "T00:00:00");
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return contactDate < today;
-  })();
-
-  const daysOverdue = (() => {
-    if (!lead.data_contato) return 0;
-    const contactDate = new Date(lead.data_contato + "T00:00:00");
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diff = Math.floor((today.getTime() - contactDate.getTime()) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 0;
-  })();
+  const followUpInfo = getFollowUpInfo({
+    data_proximo_contato: lead.data_proximo_contato,
+    data_contato: lead.data_contato,
+    status_prospeccao: lead.status_prospeccao,
+    venda_realizada: lead.venda_realizada,
+  });
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -116,11 +108,11 @@ export function LeadDetailSheet({
         </SheetHeader>
 
         {/* Alerta de Follow-up Atrasado (se houver) */}
-        {isOverdue && (
+        {followUpInfo.isOverdue && (
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-medium animate-pulse">
             <AlertCircle className="size-4 shrink-0 text-amber-400" />
             <span>
-              Follow-up atrasado há <strong>{daysOverdue} {daysOverdue === 1 ? "dia" : "dias"}</strong>. É recomendável entrar em contato hoje.
+              Follow-up atrasado ({followUpInfo.label}). É recomendável entrar em contato hoje.
             </span>
           </div>
         )}
@@ -230,11 +222,104 @@ export function LeadDetailSheet({
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Calendar className="size-3.5" />
-                Data de Contato
+                Último Contato
               </span>
               <p className="font-mono text-sm text-foreground">
                 {formatDateBR(lead.data_contato)}
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Agendamento de Retorno (Follow-up) */}
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Clock className="size-3.5 text-amber-400" />
+              Próximo Follow-up
+            </span>
+            {followUpInfo.urgency === "overdue" && (
+              <span className="text-[11px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full animate-pulse">
+                {followUpInfo.label}
+              </span>
+            )}
+            {followUpInfo.urgency === "today" && (
+              <span className="text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                ⚡ Retornar Hoje!
+              </span>
+            )}
+            {followUpInfo.urgency === "tomorrow" && (
+              <span className="text-[11px] font-medium text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-full">
+                ☀️ Retornar Amanhã
+              </span>
+            )}
+            {followUpInfo.urgency === "future" && (
+              <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                {followUpInfo.label} ({formatSimpleDate(lead.data_proximo_contato)})
+              </span>
+            )}
+          </div>
+
+          {/* Atalhos Rápidos de 1 Clique */}
+          {onNextContactChange && (
+            <div className="grid grid-cols-4 gap-1.5 pt-1">
+              <button
+                type="button"
+                onClick={() => onNextContactChange(lead.id, getQuickDate(0))}
+                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all text-center"
+                title="Agendar retorno para hoje"
+              >
+                Hoje
+              </button>
+              <button
+                type="button"
+                onClick={() => onNextContactChange(lead.id, getQuickDate(1))}
+                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all text-center"
+                title="Agendar retorno para amanhã"
+              >
+                +1 dia
+              </button>
+              <button
+                type="button"
+                onClick={() => onNextContactChange(lead.id, getQuickDate(3))}
+                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all text-center"
+                title="Agendar retorno em 3 dias"
+              >
+                +3 dias
+              </button>
+              <button
+                type="button"
+                onClick={() => onNextContactChange(lead.id, getQuickDate(7))}
+                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all text-center"
+                title="Agendar retorno em 1 semana"
+              >
+                +7 dias
+              </button>
+            </div>
+          )}
+
+          {/* Campo de Data Customizada */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/50 text-xs">
+            <span className="text-muted-foreground">Data Agendada:</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={lead.data_proximo_contato ? lead.data_proximo_contato.slice(0, 10) : ""}
+                onChange={(e) =>
+                  onNextContactChange && onNextContactChange(lead.id, e.target.value || null)
+                }
+                className="rounded-lg border border-border/70 bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
+              />
+              {lead.data_proximo_contato && onNextContactChange && (
+                <button
+                  type="button"
+                  onClick={() => onNextContactChange(lead.id, null)}
+                  className="text-muted-foreground hover:text-rose-400 text-xs transition-colors"
+                  title="Limpar agendamento"
+                >
+                  Limpar
+                </button>
+              )}
             </div>
           </div>
         </div>

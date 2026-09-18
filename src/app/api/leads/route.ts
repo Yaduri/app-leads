@@ -131,6 +131,12 @@ export async function POST(req: NextRequest) {
       }
       const observacoes = obsParts.length > 0 ? obsParts.join("\n\n") : null;
 
+      const data_proximo_contato =
+        item.data_proximo_contato ||
+        item.next_contact ||
+        item.follow_up_date ||
+        null;
+
       return {
         user_id: targetUserId,
         nome: String(nome).trim(),
@@ -141,6 +147,7 @@ export async function POST(req: NextRequest) {
         venda_realizada,
         valor_venda: isNaN(valor_venda) ? 0 : Math.max(0, Math.round(valor_venda * 100) / 100),
         data_contato,
+        data_proximo_contato: data_proximo_contato ? String(data_proximo_contato).slice(0, 10) : null,
         msg_a_mandar: msg_a_mandar ? String(msg_a_mandar).trim() : null,
         observacoes,
       };

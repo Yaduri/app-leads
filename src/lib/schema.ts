@@ -15,6 +15,7 @@ export interface Database {
           venda_realizada: string;
           observacoes: string | null;
           data_contato: string | null;
+          data_proximo_contato: string | null;
           msg_a_mandar: string | null;
           valor_venda: number;
           created_at: string;
@@ -31,6 +32,7 @@ export interface Database {
           venda_realizada?: string;
           observacoes?: string | null;
           data_contato?: string | null;
+          data_proximo_contato?: string | null;
           msg_a_mandar?: string | null;
           valor_venda?: number;
           created_at?: string;
@@ -47,6 +49,7 @@ export interface Database {
           venda_realizada?: string;
           observacoes?: string | null;
           data_contato?: string | null;
+          data_proximo_contato?: string | null;
           msg_a_mandar?: string | null;
           valor_venda?: number;
           created_at?: string;

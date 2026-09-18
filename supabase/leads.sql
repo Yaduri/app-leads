@@ -17,11 +17,15 @@ create table if not exists public.leads (
     check (venda_realizada in ('Sim', 'Não', 'Negociação', 'Em aberto')),
   observacoes text,
   data_contato date,
+  data_proximo_contato date,
   msg_a_mandar text,
   valor_venda numeric(10, 2) not null default 0.00,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Migração rápida para tabelas já existentes:
+alter table public.leads add column if not exists data_proximo_contato date;
 
 -- =============================================================
 -- Row Level Security (cada usuario ve/apenas seus registros)

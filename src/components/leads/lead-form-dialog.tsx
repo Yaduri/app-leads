@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getQuickDate } from "@/lib/follow-up";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
 import type { Lead, LeadInsert, LeadStatus, SaleStatus } from "@/lib/types";
 
@@ -40,7 +41,7 @@ export function LeadFormDialog({
   lead: Lead | null;
   onSubmit: (values: LeadFormValues) => Promise<void>;
 }) {
-  const isEditing = lead !== null;
+  const isEditing = Boolean(lead);
 
   const [nome, setNome] = useState("");
   const [nicho, setNicho] = useState("");
@@ -49,6 +50,7 @@ export function LeadFormDialog({
   const [status, setStatus] = useState<LeadStatus>("Novo Lead");
   const [venda, setVenda] = useState<SaleStatus>("Em aberto");
   const [dataContato, setDataContato] = useState("");
+  const [dataProximoContato, setDataProximoContato] = useState("");
   const [valor, setValor] = useState("0");
   const [observacoes, setObservacoes] = useState("");
   const [msg, setMsg] = useState("");
@@ -69,6 +71,7 @@ export function LeadFormDialog({
       setStatus(lead?.status_prospeccao ?? "Novo Lead");
       setVenda(lead?.venda_realizada ?? "Em aberto");
       setDataContato(lead?.data_contato ?? todayLocal);
+      setDataProximoContato(lead?.data_proximo_contato ? lead.data_proximo_contato.slice(0, 10) : "");
       setValor(lead ? String(lead.valor_venda) : "0");
       setObservacoes(lead?.observacoes ?? "");
       setMsg(lead?.msg_a_mandar ?? "");
@@ -100,6 +103,7 @@ export function LeadFormDialog({
         status_prospeccao: status,
         venda_realizada: venda,
         data_contato: dataContato || null,
+        data_proximo_contato: dataProximoContato || null,
         msg_a_mandar: msg.trim() || null,
         observacoes: observacoes.trim() || null,
         valor_venda: numericValor,
@@ -206,7 +210,7 @@ export function LeadFormDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="data_contato">Data de contato</Label>
+              <Label htmlFor="data_contato">Último contato</Label>
               <Input
                 id="data_contato"
                 type="date"
@@ -215,15 +219,66 @@ export function LeadFormDialog({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="valor">Valor da venda (R$)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="data_proximo_contato">Próximo follow-up</Label>
+                {dataProximoContato && (
+                  <button
+                    type="button"
+                    onClick={() => setDataProximoContato("")}
+                    className="text-[10px] text-muted-foreground hover:text-rose-400"
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
               <Input
-                id="valor"
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
-                placeholder="0.00"
-                inputMode="decimal"
+                id="data_proximo_contato"
+                type="date"
+                value={dataProximoContato}
+                onChange={(e) => setDataProximoContato(e.target.value)}
               />
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDataProximoContato(getQuickDate(0))}
+                  className="text-[10px] bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 px-1.5 py-0.5 rounded-md transition-colors"
+                >
+                  Hoje
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataProximoContato(getQuickDate(1))}
+                  className="text-[10px] bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 px-1.5 py-0.5 rounded-md transition-colors"
+                >
+                  +1d
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataProximoContato(getQuickDate(3))}
+                  className="text-[10px] bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 px-1.5 py-0.5 rounded-md transition-colors"
+                >
+                  +3d
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataProximoContato(getQuickDate(7))}
+                  className="text-[10px] bg-muted/60 text-muted-foreground hover:bg-muted border border-border/60 px-1.5 py-0.5 rounded-md transition-colors"
+                >
+                  +7d
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="valor">Valor da venda (R$)</Label>
+            <Input
+              id="valor"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+              placeholder="0.00"
+              inputMode="decimal"
+            />
           </div>
 
           <div className="grid gap-2">

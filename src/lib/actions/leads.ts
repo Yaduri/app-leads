@@ -138,6 +138,26 @@ export async function updateLeadValue(
   return { ok: true };
 }
 
+export async function updateLeadNextContact(
+  id: string,
+  date: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ data_proximo_contato: date || null })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  return { ok: true };
+}
+
 export async function deleteLead(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const userId = await getUserId(supabase);
