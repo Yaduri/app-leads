@@ -1,6 +1,15 @@
 "use client";
 
-import { MessageCircle, ChevronDown, Sparkles, Clock, SendHorizontal } from "lucide-react";
+import {
+  MessageCircle,
+  ChevronDown,
+  Sparkles,
+  Clock,
+  SendHorizontal,
+  Globe,
+  Gauge,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -43,27 +52,43 @@ export function WhatsAppTemplateMenu({
       disabled: !defaultMessage,
     },
     {
-      id: "apresentacao",
-      title: "1º Contato / Apresentação",
-      description: `Apresentação direta para ${nichoText}`,
-      text: `Olá, ${firstName}! Tudo bem? Vi seu trabalho com ${nichoText} e achei excelente. Gostaria de te apresentar uma oportunidade rápida para alavancar seus atendimentos. Teria 2 minutos?`,
-      icon: Sparkles,
+      id: "sem_site",
+      title: "Sem Site (Landing Page & Google)",
+      description: "Gancho para quem só tem Instagram ou não tem página",
+      text: `Olá, ${firstName}! Tudo bem? Vi seu trabalho com ${nichoText} e percebi que você tem um ótimo perfil, mas quando o cliente pesquisa no Google vocês não têm uma página oficial para converter direto no WhatsApp. Criei um modelo exclusivo para o seu segmento que dobra os contatos diários. Posso te enviar o link da demonstração?`,
+      icon: Globe,
       disabled: false,
     },
     {
-      id: "followup",
-      title: "Follow-up de Negociação",
-      description: "Retomar contato sem parecer invasivo",
-      text: `Oi, ${firstName}! Passando rapidinho para saber se você conseguiu ver a mensagem anterior. Como estão as coisas por aí essa semana?`,
+      id: "site_lento",
+      title: "Site Lento / Auditoria Mobile",
+      description: "Para leads com site desatualizado ou lento",
+      text: `Olá, ${firstName}! Tudo bem? Dei uma olhada no site de vocês e percebi que no celular ele demora para carregar e não tem botão direto de WhatsApp, o que faz muitos clientes desistirem antes de chamar. Fiz um diagnóstico rápido de melhorias para aumentar as vendas. Posso compartilhar aqui com você?`,
+      icon: Gauge,
+      disabled: false,
+    },
+    {
+      id: "followup_proposta",
+      title: "Follow-up de Proposta de Site",
+      description: "Cobrança elegante sobre o projeto",
+      text: `Oi, ${firstName}! Tudo joia? Passando para saber se você conseguiu dar uma olhada na proposta e na estrutura de páginas que desenhei para o site da sua empresa. Ficou alguma dúvida sobre o prazo ou as condições?`,
       icon: Clock,
+      disabled: false,
+    },
+    {
+      id: "objecao_instagram",
+      title: "Objeção 'Só uso Instagram'",
+      description: "Explica a força de ter canal próprio no Google",
+      text: `Com certeza, ${firstName}! O Instagram é ótimo para relacionamento, mas a grande vantagem do site é que ele é um canal proprietário que coloca sua empresa no topo do Google quando as pessoas buscam ativamente por ${nichoText} na sua região, gerando clientes prontos para comprar. Quer ver como funciona?`,
+      icon: ShieldCheck,
       disabled: false,
     },
     {
       id: "demonstracao",
       title: "Demonstração & Fechamento",
       description: "Convite para call rápida de 15 min",
-      text: `Olá, ${firstName}! Separei um horário exclusivo esta semana para te mostrar uma demonstração prática de como aumentar suas conversões. Terça ou quinta fica melhor para você?`,
-      icon: MessageCircle,
+      text: `Olá, ${firstName}! Montei uma demonstração prática de uma estrutura de alta conversão para ${nichoText}. Separei 15 minutinhos amanhã para te mostrar na tela. Às 14h ou 16h fica melhor para você?`,
+      icon: Sparkles,
       disabled: false,
     },
   ];

@@ -5,12 +5,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { Award, PieChart } from "lucide-react";
+import { Award, PieChart, TrendingUp } from "lucide-react";
 
 export interface NichoCount {
   nicho: string;
   count: number;
+  closed?: number;
+  revenue?: number;
+  conversionRate?: number;
 }
 
 const RANK_BADGES: Record<number, string> = {
@@ -91,10 +95,21 @@ export function NichoDistribution({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
+                  {c.conversionRate !== undefined && c.conversionRate > 0 && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <TrendingUp className="size-2.5" />
+                      {c.conversionRate}% conv.
+                    </span>
+                  )}
+                  {c.revenue !== undefined && c.revenue > 0 && (
+                    <span className="font-mono text-xs font-bold text-foreground">
+                      {formatCurrency(c.revenue)}
+                    </span>
+                  )}
                   <span className="font-mono text-xs text-muted-foreground">
-                    {c.count} leads
+                    {c.count} {c.count === 1 ? "lead" : "leads"}
                   </span>
-                  <span className="font-mono text-xs font-semibold text-foreground">
+                  <span className="font-mono text-xs font-semibold text-muted-foreground/80">
                     ({pct}%)
                   </span>
                 </div>

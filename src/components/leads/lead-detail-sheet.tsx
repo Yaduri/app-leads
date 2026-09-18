@@ -12,6 +12,7 @@ import {
   Building,
   CheckCircle2,
   AlertCircle,
+  Globe,
 } from "lucide-react";
 
 import {
@@ -24,6 +25,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { SaleBadge, StatusBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
+import { DigitalPresenceBadge } from "@/components/leads/digital-presence-badge";
+import { DeliveryStepper } from "@/components/leads/delivery-stepper";
+import { SiteProposalGenerator } from "@/components/leads/site-proposal-generator";
 import {
   Select,
   SelectContent,
@@ -34,7 +38,7 @@ import {
 import { LEAD_STATUSES, SALE_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatDateBR } from "@/lib/format";
 import { formatSimpleDate, getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
-import type { Lead, LeadStatus, SaleStatus } from "@/lib/types";
+import type { EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
 
 interface LeadDetailSheetProps {
   lead: Lead | null;
@@ -44,6 +48,9 @@ interface LeadDetailSheetProps {
   onStatusChange: (id: string, status: LeadStatus) => void;
   onSaleChange?: (id: string, sale: SaleStatus) => void;
   onNextContactChange?: (id: string, nextDate: string | null) => void;
+  onPresenceChange?: (id: string, presence: PresencaDigital) => void;
+  onDeliveryStageChange?: (id: string, stage: EtapaEntrega) => void;
+  onApplyProposalValues?: (id: string, setup: number, recurring: number) => void;
 }
 
 export function LeadDetailSheet({
@@ -54,6 +61,9 @@ export function LeadDetailSheet({
   onStatusChange,
   onSaleChange,
   onNextContactChange,
+  onPresenceChange,
+  onDeliveryStageChange,
+  onApplyProposalValues,
 }: LeadDetailSheetProps) {
   if (!lead) return null;
 
@@ -160,7 +170,25 @@ export function LeadDetailSheet({
               </a>
             </div>
           )}
+
+          {/* Presença Digital & Diagnóstico do Site */}
+          <div className="pt-2 border-t border-border/50 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground">Presença Digital</span>
+            <DigitalPresenceBadge
+              presence={lead.presenca_digital}
+              siteUrl={lead.site_atual}
+              onPresenceChange={(p) => onPresenceChange && onPresenceChange(lead.id, p)}
+            />
+          </div>
         </div>
+
+        {/* Funil de Entrega do Site (Pós-Venda) */}
+        {lead.venda_realizada === "Sim" && (
+          <DeliveryStepper
+            currentStage={lead.etapa_entrega}
+            onStageChange={(st) => onDeliveryStageChange && onDeliveryStageChange(lead.id, st)}
+          />
+        )}
 
         {/* Pipeline & Controles de Status */}
         <div className="rounded-2xl border border-border/70 bg-card/60 p-4 space-y-4">
@@ -208,28 +236,50 @@ export function LeadDetailSheet({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
+          <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-border/50">
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <DollarSign className="size-3.5" />
-                Valor da Venda
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <DollarSign className="size-3.5 text-emerald-400" />
+                Criação (Setup)
               </span>
-              <p className="font-mono text-base font-bold text-foreground">
+              <p className="font-mono text-sm font-bold text-foreground">
                 {formatCurrency(lead.valor_venda)}
               </p>
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="size-3.5" />
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Globe className="size-3.5 text-sky-400" />
+                Hospedagem
+              </span>
+              <p className="font-mono text-xs font-semibold text-foreground mt-0.5">
+                {lead.valor_recorrente && lead.valor_recorrente > 0
+                  ? `${formatCurrency(lead.valor_recorrente)}/mês`
+                  : "R$ 0,00"}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Calendar className="size-3.5 text-amber-400" />
                 Último Contato
               </span>
-              <p className="font-mono text-sm text-foreground">
+              <p className="font-mono text-xs text-foreground mt-0.5">
                 {formatDateBR(lead.data_contato)}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Gerador Rápido de Proposta Comercial */}
+        <SiteProposalGenerator
+          clientName={lead.nome}
+          nicho={lead.nicho}
+          phone={lead.whatsapp}
+          currentValue={lead.valor_venda}
+          currentRecurring={lead.valor_recorrente}
+          onApplyValues={(setup, rec) => onApplyProposalValues && onApplyProposalValues(lead.id, setup, rec)}
+        />
 
         {/* Agendamento de Retorno (Follow-up) */}
         <div className="rounded-2xl border border-border/70 bg-card/60 p-4 space-y-3">

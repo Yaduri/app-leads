@@ -18,6 +18,10 @@ create table if not exists public.leads (
   observacoes text,
   data_contato date,
   data_proximo_contato date,
+  site_atual text,
+  presenca_digital text default 'Sem Site',
+  valor_recorrente numeric(10, 2) not null default 0.00,
+  etapa_entrega text default 'Briefing & Conteúdo',
   msg_a_mandar text,
   valor_venda numeric(10, 2) not null default 0.00,
   created_at timestamptz not null default now(),
@@ -26,6 +30,10 @@ create table if not exists public.leads (
 
 -- Migração rápida para tabelas já existentes:
 alter table public.leads add column if not exists data_proximo_contato date;
+alter table public.leads add column if not exists site_atual text;
+alter table public.leads add column if not exists presenca_digital text default 'Sem Site';
+alter table public.leads add column if not exists valor_recorrente numeric(10, 2) not null default 0.00;
+alter table public.leads add column if not exists etapa_entrega text default 'Briefing & Conteúdo';
 
 -- =============================================================
 -- Row Level Security (cada usuario ve/apenas seus registros)

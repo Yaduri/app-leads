@@ -16,37 +16,65 @@ export default async function DashboardPage() {
 
   const supabase = await createClient();
 
-  const [{ count: total }, { data: vendasRows }, { count: negociacaoCount }, { count: followUpCount }, { data: nichoRows }] =
-    await Promise.all([
-      supabase.from("leads").select("*", { count: "exact", head: true }),
-      supabase
-        .from("leads")
-        .select("valor_venda")
-        .eq("venda_realizada", "Sim"),
-      supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("status_prospeccao", "Em Negociação"),
-      supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("venda_realizada", "Negociação"),
-      supabase.from("leads").select("nicho"),
-    ]);
+  const { data: leads } = await supabase
+    .from("leads")
+    .select("nicho, status_prospeccao, venda_realizada, valor_venda, valor_recorrente, etapa_entrega");
 
-  const vendasTotal =
-    (vendasRows ?? []).reduce(
-      (acc, row) => acc + Number(row.valor_venda ?? 0),
-      0,
-    ) ?? 0;
+  const allLeads = leads ?? [];
+  const total = allLeads.length;
 
-  const byNicho = new Map<string, number>();
-  (nichoRows ?? []).forEach((row) => {
-    const key = row.nicho || "Sem nicho";
-    byNicho.set(key, (byNicho.get(key) ?? 0) + 1);
+  let vendasTotal = 0;
+  let mrrTotal = 0;
+  let producaoCount = 0;
+  let negociacaoCount = 0;
+  let followUpCount = 0;
+
+  const nichoMap = new Map<
+    string,
+    { count: number; closed: number; revenue: number }
+  >();
+
+  allLeads.forEach((lead) => {
+    const isClosed = lead.venda_realizada === "Sim";
+    const isNegociacao =
+      lead.status_prospeccao === "Em Negociação" ||
+      lead.venda_realizada === "Negociação";
+
+    if (isClosed) {
+      vendasTotal += Number(lead.valor_venda ?? 0);
+      mrrTotal += Number(lead.valor_recorrente ?? 0);
+      if (lead.etapa_entrega !== "Site no Ar") {
+        producaoCount += 1;
+      }
+    }
+
+    if (isNegociacao) {
+      negociacaoCount += 1;
+    }
+
+    if (lead.venda_realizada === "Negociação") {
+      followUpCount += 1;
+    }
+
+    const nichoKey = lead.nicho?.trim() || "Sem nicho";
+    const curr = nichoMap.get(nichoKey) || { count: 0, closed: 0, revenue: 0 };
+    curr.count += 1;
+    if (isClosed) {
+      curr.closed += 1;
+      curr.revenue += Number(lead.valor_venda ?? 0);
+    }
+    nichoMap.set(nichoKey, curr);
   });
-  const nichoCounts = Array.from(byNicho.entries())
-    .map(([nicho, count]) => ({ nicho, count }))
+
+  const nichoCounts = Array.from(nichoMap.entries())
+    .map(([nicho, stats]) => ({
+      nicho,
+      count: stats.count,
+      closed: stats.closed,
+      revenue: stats.revenue,
+      conversionRate:
+        stats.count > 0 ? Math.round((stats.closed / stats.count) * 100) : 0,
+    }))
     .sort((a, b) => b.count - a.count);
 
   return (
@@ -54,16 +82,18 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Resumo da sua prospecção de leads.
+          Resumo financeiro e operacional da sua prospecção e produção de sites.
         </p>
       </div>
 
       <MetricCards
         metrics={{
-          total: total ?? 0,
+          total,
           vendasTotal,
-          negociacaoCount: negociacaoCount ?? 0,
-          followUpCount: followUpCount ?? 0,
+          mrrTotal,
+          producaoCount,
+          negociacaoCount,
+          followUpCount,
         }}
       />
 

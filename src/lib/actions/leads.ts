@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import type { LeadInsert, LeadStatus, SaleStatus } from "@/lib/types";
+import type { EtapaEntrega, LeadInsert, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
 
 export type ActionResult =
   | { ok: true }
@@ -149,6 +149,88 @@ export async function updateLeadNextContact(
   const { error } = await supabase
     .from("leads")
     .update({ data_proximo_contato: date || null })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  return { ok: true };
+}
+
+export async function updateLeadRecurringValue(
+  id: string,
+  valorRecorrente: number,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ valor_recorrente: valorRecorrente })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateLeadDigitalPresence(
+  id: string,
+  presence: PresencaDigital,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ presenca_digital: presence })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  return { ok: true };
+}
+
+export async function updateLeadDeliveryStage(
+  id: string,
+  stage: EtapaEntrega,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ etapa_entrega: stage })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateLeadCurrentSite(
+  id: string,
+  siteUrl: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ site_atual: siteUrl?.trim() || null })
     .eq("id", id)
     .eq("user_id", userId);
 

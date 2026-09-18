@@ -24,7 +24,22 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { getQuickDate } from "@/lib/follow-up";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
-import type { Lead, LeadInsert, LeadStatus, SaleStatus } from "@/lib/types";
+import type { EtapaEntrega, Lead, LeadInsert, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
+
+const PRESENCA_OPTIONS: PresencaDigital[] = [
+  "Sem Site",
+  "Site Lento/Antigo",
+  "Apenas Instagram",
+  "Site Moderno",
+];
+
+const ETAPA_OPTIONS: EtapaEntrega[] = [
+  "Briefing & Conteúdo",
+  "Design & Layout",
+  "Desenvolvimento",
+  "Revisão com Cliente",
+  "Site no Ar",
+];
 
 export interface LeadFormValues extends Omit<LeadInsert, "user_id"> {
   nome: string;
@@ -47,11 +62,15 @@ export function LeadFormDialog({
   const [nicho, setNicho] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [linkPerfil, setLinkPerfil] = useState("");
+  const [siteAtual, setSiteAtual] = useState("");
+  const [presencaDigital, setPresencaDigital] = useState<PresencaDigital>("Sem Site");
   const [status, setStatus] = useState<LeadStatus>("Novo Lead");
   const [venda, setVenda] = useState<SaleStatus>("Em aberto");
+  const [etapaEntrega, setEtapaEntrega] = useState<EtapaEntrega>("Briefing & Conteúdo");
   const [dataContato, setDataContato] = useState("");
   const [dataProximoContato, setDataProximoContato] = useState("");
   const [valor, setValor] = useState("0");
+  const [valorRecorrente, setValorRecorrente] = useState("0");
   const [observacoes, setObservacoes] = useState("");
   const [msg, setMsg] = useState("");
   const [pending, setPending] = useState(false);
@@ -68,11 +87,15 @@ export function LeadFormDialog({
       setNicho(lead?.nicho ?? "");
       setWhatsapp(lead?.whatsapp ?? "");
       setLinkPerfil(lead?.link_perfil ?? "");
+      setSiteAtual(lead?.site_atual ?? "");
+      setPresencaDigital(lead?.presenca_digital ?? "Sem Site");
       setStatus(lead?.status_prospeccao ?? "Novo Lead");
       setVenda(lead?.venda_realizada ?? "Em aberto");
+      setEtapaEntrega(lead?.etapa_entrega ?? "Briefing & Conteúdo");
       setDataContato(lead?.data_contato ?? todayLocal);
       setDataProximoContato(lead?.data_proximo_contato ? lead.data_proximo_contato.slice(0, 10) : "");
       setValor(lead ? String(lead.valor_venda) : "0");
+      setValorRecorrente(lead?.valor_recorrente ? String(lead.valor_recorrente) : "0");
       setObservacoes(lead?.observacoes ?? "");
       setMsg(lead?.msg_a_mandar ?? "");
       setPending(false);
@@ -84,12 +107,20 @@ export function LeadFormDialog({
     if (!nome.trim()) return;
 
     const parsedValor = parseFloat(valor.trim().replace(",", "."));
-    // "R$ 690,00" digitado manualmente
     const numericValor = isNaN(parsedValor)
       ? 0
       : Math.round(
           parseFloat(
             String(parsedValor).replace(",", ".").replace(/\.(?=\d{3,})/g, ""),
+          ) * 100,
+        ) / 100;
+
+    const parsedRecorrente = parseFloat(valorRecorrente.trim().replace(",", "."));
+    const numericRecorrente = isNaN(parsedRecorrente)
+      ? 0
+      : Math.round(
+          parseFloat(
+            String(parsedRecorrente).replace(",", ".").replace(/\.(?=\d{3,})/g, ""),
           ) * 100,
         ) / 100;
 
@@ -100,13 +131,17 @@ export function LeadFormDialog({
         nicho: nicho.trim() || null,
         whatsapp: whatsapp.trim() || null,
         link_perfil: linkPerfil.trim() || null,
+        site_atual: siteAtual.trim() || null,
+        presenca_digital: presencaDigital,
         status_prospeccao: status,
         venda_realizada: venda,
+        etapa_entrega: etapaEntrega,
         data_contato: dataContato || null,
         data_proximo_contato: dataProximoContato || null,
         msg_a_mandar: msg.trim() || null,
         observacoes: observacoes.trim() || null,
         valor_venda: numericValor,
+        valor_recorrente: numericRecorrente,
       });
     } finally {
       setPending(false);
@@ -177,6 +212,36 @@ export function LeadFormDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
+              <Label htmlFor="site_atual">Site atual (se houver)</Label>
+              <Input
+                id="site_atual"
+                value={siteAtual}
+                onChange={(e) => setSiteAtual(e.target.value)}
+                placeholder="exemplo.com.br"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Presença digital</Label>
+              <Select
+                value={presencaDigital}
+                onValueChange={(v) => setPresencaDigital(v as PresencaDigital)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESENCA_OPTIONS.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
               <Label>Status de prospecção</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as LeadStatus)}>
                 <SelectTrigger>
@@ -207,6 +272,29 @@ export function LeadFormDialog({
               </Select>
             </div>
           </div>
+
+          {venda === "Sim" && (
+            <div className="grid gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
+              <Label className="text-xs font-semibold text-emerald-400">
+                Etapa de Entrega do Site (Produção)
+              </Label>
+              <Select
+                value={etapaEntrega}
+                onValueChange={(v) => setEtapaEntrega(v as EtapaEntrega)}
+              >
+                <SelectTrigger className="bg-background/80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ETAPA_OPTIONS.map((et) => (
+                    <SelectItem key={et} value={et}>
+                      {et}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
@@ -270,15 +358,27 @@ export function LeadFormDialog({
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="valor">Valor da venda (R$)</Label>
-            <Input
-              id="valor"
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
-              placeholder="0.00"
-              inputMode="decimal"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="valor">Valor de criação (R$)</Label>
+              <Input
+                id="valor"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder="0.00"
+                inputMode="decimal"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="valor_recorrente">Mensalidade / Hospedagem (R$/mês)</Label>
+              <Input
+                id="valor_recorrente"
+                value={valorRecorrente}
+                onChange={(e) => setValorRecorrente(e.target.value)}
+                placeholder="0.00"
+                inputMode="decimal"
+              />
+            </div>
           </div>
 
           <div className="grid gap-2">

@@ -137,15 +137,24 @@ export async function POST(req: NextRequest) {
         item.follow_up_date ||
         null;
 
+      const site_atual = item.site_atual || item.website || item.site || null;
+      const presenca_digital = item.presenca_digital || (site_atual ? "Site Lento/Antigo" : "Sem Site");
+      const valor_recorrente = Number(item.valor_recorrente || item.mensalidade || 0);
+      const etapa_entrega = item.etapa_entrega || "Briefing & Conteúdo";
+
       return {
         user_id: targetUserId,
         nome: String(nome).trim(),
         nicho: nicho ? String(nicho).trim() : null,
         whatsapp: cleanPhone,
         link_perfil: link_perfil ? String(link_perfil).trim() : null,
+        site_atual: site_atual ? String(site_atual).trim() : null,
+        presenca_digital,
         status_prospeccao,
         venda_realizada,
+        etapa_entrega,
         valor_venda: isNaN(valor_venda) ? 0 : Math.max(0, Math.round(valor_venda * 100) / 100),
+        valor_recorrente: isNaN(valor_recorrente) ? 0 : Math.max(0, Math.round(valor_recorrente * 100) / 100),
         data_contato,
         data_proximo_contato: data_proximo_contato ? String(data_proximo_contato).slice(0, 10) : null,
         msg_a_mandar: msg_a_mandar ? String(msg_a_mandar).trim() : null,

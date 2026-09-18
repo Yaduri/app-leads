@@ -16,6 +16,10 @@ export interface Database {
           observacoes: string | null;
           data_contato: string | null;
           data_proximo_contato: string | null;
+          site_atual: string | null;
+          presenca_digital: string | null;
+          valor_recorrente: number;
+          etapa_entrega: string | null;
           msg_a_mandar: string | null;
           valor_venda: number;
           created_at: string;
@@ -33,6 +37,10 @@ export interface Database {
           observacoes?: string | null;
           data_contato?: string | null;
           data_proximo_contato?: string | null;
+          site_atual?: string | null;
+          presenca_digital?: string | null;
+          valor_recorrente?: number;
+          etapa_entrega?: string | null;
           msg_a_mandar?: string | null;
           valor_venda?: number;
           created_at?: string;
@@ -50,6 +58,10 @@ export interface Database {
           observacoes?: string | null;
           data_contato?: string | null;
           data_proximo_contato?: string | null;
+          site_atual?: string | null;
+          presenca_digital?: string | null;
+          valor_recorrente?: number;
+          etapa_entrega?: string | null;
           msg_a_mandar?: string | null;
           valor_venda?: number;
           created_at?: string;

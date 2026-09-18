@@ -9,6 +9,7 @@ import {
   Flame,
   ListFilter,
   Plus,
+  Rocket,
   Search,
   Table2,
   Trash2,
@@ -53,16 +54,19 @@ import {
   updateLeadSale,
   updateLeadValue,
   updateLeadNextContact,
+  updateLeadRecurringValue,
+  updateLeadDigitalPresence,
+  updateLeadDeliveryStage,
 } from "@/lib/actions/leads";
 import { fireCelebrationConfetti } from "@/lib/confetti";
 import { getFollowUpInfo } from "@/lib/follow-up";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
-import type { ActionResult, Lead, LeadStatus, SaleStatus } from "@/lib/types";
+import type { ActionResult, EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "table" | "kanban";
 type SelectValueOpt = string;
-type QuickFilterType = "all" | "hoje" | "atrasados" | "negociacao" | "vendas";
+type QuickFilterType = "all" | "hoje" | "atrasados" | "negociacao" | "producao" | "vendas";
 
 export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   const router = useRouter();
@@ -105,6 +109,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     let hoje = 0;
     let atrasados = 0;
     let negociacao = 0;
+    let producao = 0;
     let vendas = 0;
 
     for (const lead of localLeads) {
@@ -112,7 +117,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       if (follow.isToday) hoje++;
       if (follow.isOverdue) atrasados++;
       if (lead.status_prospeccao === "Em Negociação") negociacao++;
-      if (lead.venda_realizada === "Sim") vendas++;
+      if (lead.venda_realizada === "Sim") {
+        vendas++;
+        if (lead.etapa_entrega !== "Site no Ar") producao++;
+      }
     }
 
     return {
@@ -120,6 +128,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       hoje,
       atrasados,
       negociacao,
+      producao,
       vendas,
     };
   }, [localLeads]);
@@ -131,6 +140,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       // Smart Views Quick filters
       if (quickFilter === "negociacao" && lead.status_prospeccao !== "Em Negociação") {
         return false;
+      }
+      if (quickFilter === "producao") {
+        const isProducao = lead.venda_realizada === "Sim" && lead.etapa_entrega !== "Site no Ar";
+        if (!isProducao) return false;
       }
       if (quickFilter === "vendas" && lead.venda_realizada !== "Sim") {
         return false;
@@ -314,6 +327,78 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     router.refresh();
   }
 
+  async function handlePresenceChange(id: string, presence: PresencaDigital) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, presenca_digital: presence } : l)),
+    );
+
+    const result = await updateLeadDigitalPresence(id, presence);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, presenca_digital: previous.presenca_digital } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success(`Presença digital: ${presence}`);
+    router.refresh();
+  }
+
+  async function handleDeliveryStageChange(id: string, stage: EtapaEntrega) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, etapa_entrega: stage } : l)),
+    );
+
+    const result = await updateLeadDeliveryStage(id, stage);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, etapa_entrega: previous.etapa_entrega } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success(`Etapa de entrega: ${stage}`);
+    router.refresh();
+  }
+
+  async function handleApplyProposalValues(id: string, setup: number, recurring: number) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, valor_venda: setup, valor_recorrente: recurring } : l)),
+    );
+
+    const [res1, res2] = await Promise.all([
+      updateLeadValue(id, setup),
+      updateLeadRecurringValue(id, recurring),
+    ]);
+
+    if (!res1.ok || !res2.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id
+            ? { ...l, valor_venda: previous.valor_venda, valor_recorrente: previous.valor_recorrente }
+            : l,
+        ),
+      );
+      toast.error("Erro ao salvar valores da proposta.");
+      return;
+    }
+    toast.success("Valores da proposta salvos no lead!");
+    router.refresh();
+  }
+
   const hasFilters =
     search.trim() !== "" ||
     nicho !== "all" ||
@@ -463,6 +548,32 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
               )}
             >
               {smartCounts.negociacao}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setQuickFilter("producao")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            quickFilter === "producao"
+              ? "bg-amber-500 text-white border-amber-600 shadow-sm"
+              : "bg-card/50 text-muted-foreground border-border/70 hover:text-amber-400 hover:bg-card",
+          )}
+        >
+          <Rocket className="size-3.5 text-amber-400" />
+          <span>Em Produção</span>
+          {smartCounts.producao > 0 && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                quickFilter === "producao"
+                  ? "bg-white/25 text-white"
+                  : "bg-amber-500/15 text-amber-500 font-bold",
+              )}
+            >
+              {smartCounts.producao}
             </span>
           )}
         </button>
@@ -620,6 +731,9 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         onStatusChange={handleStatusChange}
         onSaleChange={handleSaleChange}
         onNextContactChange={handleNextContactChange}
+        onPresenceChange={handlePresenceChange}
+        onDeliveryStageChange={handleDeliveryStageChange}
+        onApplyProposalValues={handleApplyProposalValues}
       />
 
       {/* Barra Flutuante de Ações em Massa */}

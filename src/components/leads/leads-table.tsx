@@ -17,6 +17,7 @@ import { InlineStatusSelect } from "@/components/leads/inline-status-select";
 import { InlineSaleSelect } from "@/components/leads/inline-sale-select";
 import { InlineValueEdit } from "@/components/leads/inline-value-edit";
 import { QuickFollowupPicker } from "@/components/leads/quick-followup-picker";
+import { DigitalPresenceBadge } from "@/components/leads/digital-presence-badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -197,6 +198,13 @@ export function LeadsTable({
                     {lead.nicho && (
                       <p className="text-xs text-muted-foreground mt-0.5">{lead.nicho}</p>
                     )}
+                    <div className="mt-1">
+                      <DigitalPresenceBadge
+                        presence={lead.presenca_digital}
+                        siteUrl={lead.site_atual}
+                        compact
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -254,11 +262,18 @@ export function LeadsTable({
                   <SaleBadge sale={lead.venda_realizada} />
                 )}
 
-                {lead.valor_venda > 0 && (
-                  <span className="ml-auto font-mono text-xs font-bold text-foreground">
-                    {formatCurrency(lead.valor_venda)}
-                  </span>
-                )}
+                <div className="ml-auto text-right">
+                  {lead.valor_venda > 0 && (
+                    <div className="font-mono text-xs font-bold text-foreground">
+                      {formatCurrency(lead.valor_venda)}
+                    </div>
+                  )}
+                  {lead.valor_recorrente && lead.valor_recorrente > 0 ? (
+                    <div className="font-mono text-[10px] text-sky-400 font-medium">
+                      +{formatCurrency(lead.valor_recorrente)}/mês
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               {followUp && (
@@ -370,11 +385,18 @@ export function LeadsTable({
                       >
                         {lead.nome}
                       </div>
-                      {lead.whatsapp && (
-                        <div className="font-mono text-xs text-muted-foreground truncate">
-                          ({lead.whatsapp.slice(0, 2)}) {lead.whatsapp.slice(2)}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        {lead.whatsapp && (
+                          <span className="font-mono text-xs text-muted-foreground truncate">
+                            ({lead.whatsapp.slice(0, 2)}) {lead.whatsapp.slice(2)}
+                          </span>
+                        )}
+                        <DigitalPresenceBadge
+                          presence={lead.presenca_digital}
+                          siteUrl={lead.site_atual}
+                          compact
+                        />
+                      </div>
                     </TableCell>
                     <TableCell>
                       {lead.nicho ? (
@@ -426,7 +448,7 @@ export function LeadsTable({
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
                       {onValueChange ? (
                         <InlineValueEdit
                           leadId={lead.id}
@@ -438,6 +460,11 @@ export function LeadsTable({
                           {formatCurrency(lead.valor_venda)}
                         </span>
                       )}
+                      {lead.valor_recorrente && lead.valor_recorrente > 0 ? (
+                        <div className="font-mono text-[10px] text-sky-400 font-medium">
+                          +{formatCurrency(lead.valor_recorrente)}/mês
+                        </div>
+                      ) : null}
                     </TableCell>
                     <TableCell className="max-w-[180px]">
                       <span

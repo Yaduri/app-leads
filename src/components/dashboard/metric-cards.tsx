@@ -4,7 +4,9 @@ import {
   Banknote,
   BellRing,
   CheckCircle2,
+  Globe,
   Handshake,
+  Rocket,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -23,100 +25,122 @@ import { cn } from "@/lib/utils";
 export interface Metrics {
   total: number;
   vendasTotal: number;
+  mrrTotal?: number;
+  producaoCount?: number;
   negociacaoCount: number;
   followUpCount: number;
 }
 
 export function MetricCards({ metrics }: { metrics: Metrics }) {
-  const conversionRate =
-    metrics.total > 0
-      ? Math.round(((metrics.total - metrics.negociacaoCount - metrics.followUpCount) / metrics.total) * 100)
-      : 0;
+  const mrr = metrics.mrrTotal || 0;
+  const producao = metrics.producaoCount || 0;
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* Bento Hero Card: Faturamento & Conversão (Ocupa 2 colunas no desktop) */}
-      <Card className="relative overflow-hidden border-border/70 bg-gradient-to-br from-card to-card/60 backdrop-blur-xl lg:col-span-2 shadow-lg shadow-emerald-950/5">
-        <div className="absolute -right-6 -top-6 size-32 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Card 1: Vendas Realizadas (Setup dos Sites) */}
+      <Card className="relative overflow-hidden border-border/70 bg-gradient-to-br from-card to-card/60 backdrop-blur-xl shadow-md shadow-emerald-950/5">
+        <div className="absolute -right-6 -top-6 size-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="space-y-1">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
               <TrendingUp className="size-3" />
-              Receita Confirmada
+              Projetos Fechados
             </span>
-            <CardTitle className="text-xl font-bold tracking-tight text-foreground">
-              Vendas Realizadas
+            <CardTitle className="text-sm font-bold text-foreground">
+              Vendas de Sites
             </CardTitle>
           </div>
-          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-            <Banknote className="size-5" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-baseline gap-3">
-            <span className="font-mono text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-              {formatCurrency(metrics.vendasTotal)}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              em negócios fechados
-            </span>
-          </div>
-
-          <div className="pt-2 border-t border-border/50 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <CheckCircle2 className="size-4 text-emerald-400" />
-              <span>Pipeline de conversão ativo</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs gap-1 text-primary hover:text-primary/80 px-2"
-              render={<Link href="/leads" />}
-            >
-              Ver leads <ArrowUpRight className="size-3.5" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Card 2: Em Negociação (Pipeline Aquecido) */}
-      <Card className="relative overflow-hidden border-border/70 bg-card/60 backdrop-blur-xl shadow-md">
-        <div className="absolute -right-4 -top-4 size-24 rounded-full bg-violet-500/10 blur-xl pointer-events-none" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Em Negociação
-          </CardTitle>
-          <div className="flex size-8 items-center justify-center rounded-lg bg-violet-500/15 text-violet-400 border border-violet-500/25">
-            <Handshake className="size-4" />
+          <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+            <Banknote className="size-4" />
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="font-mono text-3xl font-bold tracking-tight text-foreground">
-            {metrics.negociacaoCount}
+          <div className="font-mono text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
+            {formatCurrency(metrics.vendasTotal)}
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Status "Em Negociação" aguardando fechamento
+          <p className="text-xs text-muted-foreground">
+            Faturamento acumulado em criação de sites
           </p>
         </CardContent>
       </Card>
 
-      {/* Card 3: Pendentes de Follow-Up */}
-      <Card className="relative overflow-hidden border-border/70 bg-card/60 backdrop-blur-xl shadow-md">
-        <div className="absolute -right-4 -top-4 size-24 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Follow-ups Ativos
-          </CardTitle>
-          <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/25">
-            <BellRing className="size-4" />
+      {/* Card 2: MRR Recorrente (Hospedagem & Suporte) */}
+      <Card className="relative overflow-hidden border-border/70 bg-gradient-to-br from-card to-card/60 backdrop-blur-xl shadow-md shadow-sky-950/5">
+        <div className="absolute -right-6 -top-6 size-28 rounded-full bg-sky-500/10 blur-2xl pointer-events-none" />
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-400 border border-sky-500/20">
+              <Globe className="size-3" />
+              Recorrência Mensal
+            </span>
+            <CardTitle className="text-sm font-bold text-foreground">
+              MRR Hospedagem
+            </CardTitle>
+          </div>
+          <div className="flex size-9 items-center justify-center rounded-xl bg-sky-500/15 text-sky-400 border border-sky-500/20">
+            <Globe className="size-4" />
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="font-mono text-3xl font-bold tracking-tight text-foreground">
-            {metrics.followUpCount}
+          <div className="font-mono text-2xl font-extrabold tracking-tight text-sky-400 md:text-3xl">
+            {formatCurrency(mrr)}<span className="text-xs font-normal text-muted-foreground">/mês</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Receita previsível de manutenção e hospedagem
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Card 3: Sites em Produção (Pós-Venda) */}
+      <Card className="relative overflow-hidden border-border/70 bg-card/60 backdrop-blur-xl shadow-md">
+        <div className="absolute -right-4 -top-4 size-24 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400 border border-amber-500/20">
+              <Rocket className="size-3" />
+              Fase de Entrega
+            </span>
+            <CardTitle className="text-sm font-bold text-foreground">
+              Em Produção
+            </CardTitle>
+          </div>
+          <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/25">
+            <Rocket className="size-4" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="font-mono text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            {producao} {producao === 1 ? "site" : "sites"}
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Contatos que necessitam de acompanhamento
+            Projetos fechados em desenvolvimento ativo
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Card 4: Em Negociação */}
+      <Card className="relative overflow-hidden border-border/70 bg-card/60 backdrop-blur-xl shadow-md">
+        <div className="absolute -right-4 -top-4 size-24 rounded-full bg-violet-500/10 blur-xl pointer-events-none" />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs font-semibold text-violet-400 border border-violet-500/20">
+              <Handshake className="size-3" />
+              Funil Aquecido
+            </span>
+            <CardTitle className="text-sm font-bold text-foreground">
+              Em Negociação
+            </CardTitle>
+          </div>
+          <div className="flex size-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-400 border border-violet-500/25">
+            <Handshake className="size-4" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="font-mono text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            {metrics.negociacaoCount}
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Propostas de sites enviadas aguardando fechamento
           </p>
         </CardContent>
       </Card>

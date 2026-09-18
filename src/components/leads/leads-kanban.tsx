@@ -6,6 +6,7 @@ import { GripVertical, Pencil, AlertCircle } from "lucide-react";
 import { SaleBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
 import { QuickFollowupPicker } from "@/components/leads/quick-followup-picker";
+import { DigitalPresenceBadge } from "@/components/leads/digital-presence-badge";
 import { Button } from "@/components/ui/button";
 import { LEAD_STATUSES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format";
@@ -75,6 +76,7 @@ export function LeadsKanban({
           (lead) => lead.status_prospeccao === status,
         );
         const columnTotalValue = items.reduce((sum, item) => sum + (item.valor_venda || 0), 0);
+        const columnRecurringValue = items.reduce((sum, item) => sum + (item.valor_recorrente || 0), 0);
         const isOver = overColumn === status;
 
         return (
@@ -106,10 +108,19 @@ export function LeadsKanban({
                 <span className="text-sm font-semibold tracking-tight text-foreground">{status}</span>
               </div>
               <div className="flex items-center gap-2">
-                {columnTotalValue > 0 && (
-                  <span className="text-[11px] font-mono font-medium text-emerald-400">
-                    {formatCurrency(columnTotalValue)}
-                  </span>
+                {(columnTotalValue > 0 || columnRecurringValue > 0) && (
+                  <div className="flex flex-col items-end leading-tight">
+                    {columnTotalValue > 0 && (
+                      <span className="text-[11px] font-mono font-bold text-emerald-400">
+                        {formatCurrency(columnTotalValue)}
+                      </span>
+                    )}
+                    {columnRecurringValue > 0 && (
+                      <span className="text-[9px] font-mono font-medium text-sky-400">
+                        +{formatCurrency(columnRecurringValue)}/mês
+                      </span>
+                    )}
+                  </div>
                 )}
                 <span className="rounded-full bg-muted/80 px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground">
                   {items.length}
@@ -161,7 +172,21 @@ export function LeadsKanban({
                       <GripVertical className="size-4 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    {/* Presença Digital & Link do Site */}
+                    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                      <DigitalPresenceBadge
+                        presence={lead.presenca_digital}
+                        siteUrl={lead.site_atual}
+                        compact
+                      />
+                      {lead.valor_recorrente && lead.valor_recorrente > 0 ? (
+                        <span className="text-[10px] font-mono font-medium text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded-md">
+                          +{formatCurrency(lead.valor_recorrente)}/mês
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <SaleBadge sale={lead.venda_realizada} />
                         {lead.valor_venda > 0 ? (
