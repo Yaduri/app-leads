@@ -178,6 +178,14 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     );
   }, []);
 
+  const handleSelectMultiple = useCallback((ids: string[]) => {
+    setSelectedIds(ids);
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds([]);
+  }, []);
+
   const handleSelectAll = useCallback(() => {
     if (selectedIds.length === filtered.length) {
       setSelectedIds([]);
@@ -711,6 +719,8 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onSelectAll={handleSelectAll}
+          onSelectMultiple={handleSelectMultiple}
+          onClearSelection={handleClearSelection}
         />
       ) : (
         <LeadsKanban

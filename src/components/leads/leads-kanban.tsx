@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { GripVertical, Pencil, AlertCircle } from "lucide-react";
+import { GripVertical, Pencil, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 import { SaleBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
@@ -36,6 +36,7 @@ export function LeadsKanban({
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null);
+  const [columnLimits, setColumnLimits] = useState<Record<string, number>>({});
   const dragCounter = useRef<Record<string, number>>({});
 
   const handleDragEnter = (e: React.DragEvent, status: LeadStatus) => {
@@ -78,6 +79,11 @@ export function LeadsKanban({
         const columnTotalValue = items.reduce((sum, item) => sum + (item.valor_venda || 0), 0);
         const columnRecurringValue = items.reduce((sum, item) => sum + (item.valor_recorrente || 0), 0);
         const isOver = overColumn === status;
+
+        const currentLimit = columnLimits[status] ?? 15;
+        const visibleItems = items.slice(0, currentLimit);
+        const hasMore = items.length > currentLimit;
+        const isExpanded = currentLimit > 15;
 
         return (
           <div
@@ -135,7 +141,7 @@ export function LeadsKanban({
                   Arraste cards para cá
                 </div>
               )}
-              {items.map((lead) => {
+              {visibleItems.map((lead) => {
                 const isDraggingThis = draggingId === lead.id;
                 return (
                   <div
@@ -237,6 +243,61 @@ export function LeadsKanban({
                   </div>
                 );
               })}
+
+              {/* Controles de Carga Progressiva */}
+              {items.length > 15 && (
+                <div className="pt-2 border-t border-border/50 flex flex-col gap-1.5 mt-auto">
+                  {hasMore && (
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs h-7 gap-1 border-border/70 bg-card/60 hover:bg-muted text-muted-foreground hover:text-foreground font-medium"
+                        onClick={() =>
+                          setColumnLimits((prev) => ({
+                            ...prev,
+                            [status]: (prev[status] ?? 15) + 15,
+                          }))
+                        }
+                      >
+                        <ChevronDown className="size-3" />
+                        +15 cards
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[11px] h-7 text-primary hover:text-primary/90 px-2 font-medium"
+                        onClick={() =>
+                          setColumnLimits((prev) => ({
+                            ...prev,
+                            [status]: items.length,
+                          }))
+                        }
+                        title="Exibir todos os cards desta coluna"
+                      >
+                        Todos ({items.length})
+                      </Button>
+                    </div>
+                  )}
+
+                  {isExpanded && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 text-muted-foreground hover:text-foreground gap-1 justify-center"
+                      onClick={() =>
+                        setColumnLimits((prev) => ({
+                          ...prev,
+                          [status]: 15,
+                        }))
+                      }
+                    >
+                      <ChevronUp className="size-3" />
+                      Recolher para 15
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   FileSearch,
   Pencil,
@@ -9,6 +9,7 @@ import {
   ChevronDown,
   AlertCircle,
   Eye,
+  CheckCheck,
 } from "lucide-react";
 
 import { SaleBadge, StatusBadge } from "@/components/leads/status-badge";
@@ -18,6 +19,7 @@ import { InlineSaleSelect } from "@/components/leads/inline-sale-select";
 import { InlineValueEdit } from "@/components/leads/inline-value-edit";
 import { QuickFollowupPicker } from "@/components/leads/quick-followup-picker";
 import { DigitalPresenceBadge } from "@/components/leads/digital-presence-badge";
+import { PaginationControls } from "@/components/leads/pagination-controls";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -45,6 +47,8 @@ interface LeadsTableProps {
   selectedIds?: string[];
   onToggleSelect?: (id: string) => void;
   onSelectAll?: () => void;
+  onSelectMultiple?: (ids: string[]) => void;
+  onClearSelection?: () => void;
 }
 
 function getFollowUpStatus(dateStr: string | null, status: LeadStatus) {
@@ -71,9 +75,18 @@ export function LeadsTable({
   selectedIds = [],
   onToggleSelect,
   onSelectAll,
+  onSelectMultiple,
+  onClearSelection,
 }: LeadsTableProps) {
   const [sortField, setSortField] = useState<keyof Lead | null>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  // Reinicia para a página 1 ao alterar filtros ou lista externa
+  useEffect(() => {
+    setPage(1);
+  }, [leads.length]);
 
   function handleSort(field: keyof Lead) {
     if (sortField === field) {
@@ -82,6 +95,7 @@ export function LeadsTable({
       setSortField(field);
       setSortDirection("asc");
     }
+    setPage(1);
   }
 
   const sortedLeads = useMemo(() => {
@@ -108,8 +122,54 @@ export function LeadsTable({
     });
   }, [leads, sortField, sortDirection]);
 
-  const allSelected =
-    sortedLeads.length > 0 && selectedIds.length === sortedLeads.length;
+  // Paginação
+  const totalPages = Math.max(1, Math.ceil(sortedLeads.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const displayedLeads = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedLeads.slice(start, start + pageSize);
+  }, [sortedLeads, currentPage, pageSize]);
+
+  const displayedIds = useMemo(() => displayedLeads.map((l) => l.id), [displayedLeads]);
+  const allFilteredIds = useMemo(() => sortedLeads.map((l) => l.id), [sortedLeads]);
+
+  const allPageSelected =
+    displayedIds.length > 0 && displayedIds.every((id) => selectedIds.includes(id));
+  const somePageSelected =
+    displayedIds.some((id) => selectedIds.includes(id));
+  const allFilteredSelected =
+    allFilteredIds.length > 0 && allFilteredIds.every((id) => selectedIds.includes(id));
+
+  const handleTogglePageSelection = () => {
+    if (onSelectMultiple) {
+      if (allPageSelected) {
+        // Desmarca os da página atual
+        const remaining = selectedIds.filter((id) => !displayedIds.includes(id));
+        onSelectMultiple(remaining);
+      } else {
+        // Marca os da página atual
+        const combined = Array.from(new Set([...selectedIds, ...displayedIds]));
+        onSelectMultiple(combined);
+      }
+    } else if (onSelectAll) {
+      onSelectAll();
+    }
+  };
+
+  const handleSelectAllFiltered = () => {
+    if (onSelectMultiple) {
+      onSelectMultiple(allFilteredIds);
+    }
+  };
+
+  const handleClearAllSelection = () => {
+    if (onClearSelection) {
+      onClearSelection();
+    } else if (onSelectMultiple) {
+      onSelectMultiple([]);
+    }
+  };
 
   if (leads.length === 0) {
     return (
@@ -162,9 +222,44 @@ export function LeadsTable({
 
   return (
     <div className="space-y-4">
+      {/* Banner de Seleção em Lote Inteligente (Gmail / Linear style) */}
+      {allPageSelected && sortedLeads.length > displayedLeads.length && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-2.5 text-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 text-foreground font-medium">
+            <CheckCheck className="size-4 text-primary shrink-0" />
+            {allFilteredSelected ? (
+              <span>
+                Todos os <strong>{sortedLeads.length}</strong> leads filtrados estão selecionados.
+              </span>
+            ) : (
+              <span>
+                Todos os <strong>{displayedLeads.length}</strong> leads desta página estão selecionados.
+              </span>
+            )}
+          </div>
+          {allFilteredSelected ? (
+            <button
+              type="button"
+              onClick={handleClearAllSelection}
+              className="font-semibold text-primary hover:underline underline-offset-2 cursor-pointer"
+            >
+              Limpar seleção
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSelectAllFiltered}
+              className="font-semibold text-primary hover:underline underline-offset-2 cursor-pointer"
+            >
+              Selecionar todos os {sortedLeads.length} leads filtrados
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Mobile Cards View (< md) */}
       <div className="grid grid-cols-1 gap-3 md:hidden">
-        {sortedLeads.map((lead) => {
+        {displayedLeads.map((lead) => {
           const isSelected = selectedIds.includes(lead.id);
           const followUp = getFollowUpStatus(lead.data_contato, lead.status_prospeccao);
 
@@ -319,6 +414,15 @@ export function LeadsTable({
             </div>
           );
         })}
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={sortedLeads.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          className="rounded-2xl border border-border/70 bg-card/60 backdrop-blur-xl mt-1"
+        />
       </div>
 
       {/* Desktop Table View (>= md) */}
@@ -327,11 +431,17 @@ export function LeadsTable({
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow className="hover:bg-transparent border-border/70">
-                {onSelectAll && (
+                {(onSelectAll || onSelectMultiple) && (
                   <TableHead className="w-10 pl-4">
                     <Checkbox
-                      checked={allSelected}
-                      onCheckedChange={onSelectAll}
+                      checked={allPageSelected}
+                      indeterminate={somePageSelected && !allPageSelected}
+                      onCheckedChange={handleTogglePageSelection}
+                      title={
+                        allPageSelected
+                          ? "Desmarcar página atual"
+                          : "Selecionar página atual"
+                      }
                     />
                   </TableHead>
                 )}
@@ -348,7 +458,7 @@ export function LeadsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedLeads.map((lead) => {
+              {displayedLeads.map((lead) => {
                 const isSelected = selectedIds.includes(lead.id);
                 const followUp = getFollowUpStatus(lead.data_contato, lead.status_prospeccao);
 
@@ -513,6 +623,14 @@ export function LeadsTable({
             </TableBody>
           </Table>
         </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={sortedLeads.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
     </div>
   );
