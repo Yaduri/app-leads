@@ -54,6 +54,7 @@ import {
   updateLeadSale,
   updateLeadValue,
   updateLeadNextContact,
+  updateLeadContactDate,
   updateLeadRecurringValue,
   updateLeadDigitalPresence,
   updateLeadDeliveryStage,
@@ -332,6 +333,28 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success(nextDate ? "Follow-up agendado!" : "Follow-up desmarcado");
+    router.refresh();
+  }
+
+  async function handleContactDateChange(id: string, nextDate: string) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, data_contato: nextDate } : l)),
+    );
+
+    const result = await updateLeadContactDate(id, nextDate);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, data_contato: previous.data_contato } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Último contato atualizado para hoje!");
     router.refresh();
   }
 
@@ -716,6 +739,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           onSaleChange={handleSaleChange}
           onValueChange={handleValueChange}
           onNextContactChange={handleNextContactChange}
+          onContactDateChange={handleContactDateChange}
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onSelectAll={handleSelectAll}
@@ -729,6 +753,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           onStatusChange={handleStatusChange}
           onSelectLead={(lead) => setViewingLead(lead)}
           onNextContactChange={handleNextContactChange}
+          onContactDateChange={handleContactDateChange}
         />
       )}
 
@@ -741,6 +766,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         onStatusChange={handleStatusChange}
         onSaleChange={handleSaleChange}
         onNextContactChange={handleNextContactChange}
+        onContactDateChange={handleContactDateChange}
         onPresenceChange={handlePresenceChange}
         onDeliveryStageChange={handleDeliveryStageChange}
         onApplyProposalValues={handleApplyProposalValues}

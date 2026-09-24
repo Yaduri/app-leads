@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Globe,
+  CalendarCheck,
 } from "lucide-react";
 
 import {
@@ -48,6 +49,7 @@ interface LeadDetailSheetProps {
   onStatusChange: (id: string, status: LeadStatus) => void;
   onSaleChange?: (id: string, sale: SaleStatus) => void;
   onNextContactChange?: (id: string, nextDate: string | null) => void;
+  onContactDateChange?: (id: string, nextDate: string) => void;
   onPresenceChange?: (id: string, presence: PresencaDigital) => void;
   onDeliveryStageChange?: (id: string, stage: EtapaEntrega) => void;
   onApplyProposalValues?: (id: string, setup: number, recurring: number) => void;
@@ -61,6 +63,7 @@ export function LeadDetailSheet({
   onStatusChange,
   onSaleChange,
   onNextContactChange,
+  onContactDateChange,
   onPresenceChange,
   onDeliveryStageChange,
   onApplyProposalValues,
@@ -264,9 +267,22 @@ export function LeadDetailSheet({
                 <Calendar className="size-3.5 text-amber-400" />
                 Último Contato
               </span>
-              <p className="font-mono text-xs text-foreground mt-0.5">
-                {formatDateBR(lead.data_contato)}
-              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="font-mono text-xs text-foreground">
+                  {formatDateBR(lead.data_contato)}
+                </p>
+                {onContactDateChange && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                    title="Atualizar último contato para hoje"
+                    onClick={() => onContactDateChange(lead.id, getQuickDate(0))}
+                  >
+                    <CalendarCheck className="size-3" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

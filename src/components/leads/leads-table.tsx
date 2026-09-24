@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Eye,
   CheckCheck,
+  CalendarCheck,
 } from "lucide-react";
 
 import { SaleBadge, StatusBadge } from "@/components/leads/status-badge";
@@ -31,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDateBR } from "@/lib/format";
-import { formatSimpleDate } from "@/lib/follow-up";
+import { formatSimpleDate, getQuickDate } from "@/lib/follow-up";
 import type { Lead, LeadStatus, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,7 @@ interface LeadsTableProps {
   onSaleChange?: (id: string, sale: SaleStatus) => void;
   onValueChange?: (id: string, val: number) => void;
   onNextContactChange?: (id: string, date: string | null) => void;
+  onContactDateChange?: (id: string, date: string) => void;
   selectedIds?: string[];
   onToggleSelect?: (id: string) => void;
   onSelectAll?: () => void;
@@ -72,6 +74,7 @@ export function LeadsTable({
   onSaleChange,
   onValueChange,
   onNextContactChange,
+  onContactDateChange,
   selectedIds = [],
   onToggleSelect,
   onSelectAll,
@@ -304,6 +307,17 @@ export function LeadsTable({
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
+                  {onContactDateChange && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      title="Atualizar último contato para hoje"
+                      onClick={() => onContactDateChange(lead.id, getQuickDate(0))}
+                    >
+                      <CalendarCheck className="size-3.5" />
+                    </Button>
+                  )}
                   {onSelectLead && (
                     <Button
                       variant="ghost"
@@ -540,7 +554,20 @@ export function LeadsTable({
                       )}
                     </TableCell>
                     <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
-                      <span>{formatDateBR(lead.data_contato)}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span>{formatDateBR(lead.data_contato)}</span>
+                        {onContactDateChange && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-6 text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-colors"
+                            title="Atualizar último contato para hoje"
+                            onClick={() => onContactDateChange(lead.id, getQuickDate(0))}
+                          >
+                            <CalendarCheck className="size-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {onNextContactChange ? (

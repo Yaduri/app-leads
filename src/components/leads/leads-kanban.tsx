@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { GripVertical, Pencil, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { GripVertical, Pencil, AlertCircle, ChevronDown, ChevronUp, CalendarCheck } from "lucide-react";
 
 import { SaleBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
@@ -10,6 +10,7 @@ import { DigitalPresenceBadge } from "@/components/leads/digital-presence-badge"
 import { Button } from "@/components/ui/button";
 import { LEAD_STATUSES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format";
+import { getQuickDate } from "@/lib/follow-up";
 import type { Lead, LeadStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -27,12 +28,14 @@ export function LeadsKanban({
   onStatusChange,
   onSelectLead,
   onNextContactChange,
+  onContactDateChange,
 }: {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
   onStatusChange: (id: string, status: LeadStatus) => void;
   onSelectLead?: (lead: Lead) => void;
   onNextContactChange?: (id: string, date: string | null) => void;
+  onContactDateChange?: (id: string, date: string) => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null);
@@ -230,15 +233,28 @@ export function LeadsKanban({
                         label="WhatsApp"
                         compact={false}
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground hover:text-foreground"
-                        title="Editar lead"
-                        onClick={() => onEdit(lead)}
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {onContactDateChange && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                            title="Atualizar último contato para hoje"
+                            onClick={() => onContactDateChange(lead.id, getQuickDate(0))}
+                          >
+                            <CalendarCheck className="size-3.5" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-muted-foreground hover:text-foreground"
+                          title="Editar lead"
+                          onClick={() => onEdit(lead)}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
