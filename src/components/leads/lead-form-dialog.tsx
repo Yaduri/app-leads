@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { CalendarCheck, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -299,12 +299,25 @@ export function LeadFormDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="data_contato">Último contato</Label>
-              <Input
-                id="data_contato"
-                type="date"
-                value={dataContato}
-                onChange={(e) => setDataContato(e.target.value)}
-              />
+              <div className="flex items-center gap-1.5">
+                <Input
+                  id="data_contato"
+                  type="date"
+                  value={dataContato}
+                  onChange={(e) => setDataContato(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-9 shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10 border-border/70"
+                  title="Atualizar último contato para hoje"
+                  onClick={() => setDataContato(getQuickDate(0))}
+                >
+                  <CalendarCheck className="size-4 text-primary" />
+                </Button>
+              </div>
             </div>
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
