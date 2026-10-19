@@ -331,7 +331,7 @@ export function LeadDetailSheet({
               {lead.status_pagamento && (
                 <span
                   className={cn(
-                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                    "text-[11px] font-semibold px-2 py-0.5 rounded-full border",
                     STATUS_PAGAMENTO_CLASSES[lead.status_pagamento] || "bg-muted text-muted-foreground border-border",
                   )}
                 >
@@ -342,12 +342,12 @@ export function LeadDetailSheet({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] text-muted-foreground">Status do Pagamento</label>
+                <label htmlFor="lead-payment-status" className="text-[11px] text-muted-foreground">Status do Pagamento</label>
                 <Select
                   value={lead.status_pagamento || "Em Aberto"}
                   onValueChange={(val) => onPaymentStatusChange && onPaymentStatusChange(lead.id, val as StatusPagamento)}
                 >
-                  <SelectTrigger className="h-8 text-xs bg-background/50 border-border/70">
+                  <SelectTrigger id="lead-payment-status" className="h-9 text-xs bg-background/50 border-border/70">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -361,8 +361,9 @@ export function LeadDetailSheet({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-muted-foreground">Dia de Vencimento</label>
+                <label htmlFor="lead-due-day-input" className="text-[11px] text-muted-foreground">Dia de Vencimento</label>
                 <input
+                  id="lead-due-day-input"
                   type="number"
                   min={1}
                   max={31}
@@ -373,7 +374,7 @@ export function LeadDetailSheet({
                       onDueDayChange(lead.id, d);
                     }
                   }}
-                  className="h-8 w-full rounded-md border border-border/70 bg-background/50 px-3 text-xs font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="h-9 w-full rounded-md border border-border/70 bg-background/50 px-3 text-xs font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
               </div>
             </div>
@@ -398,7 +399,7 @@ export function LeadDetailSheet({
               Próximo Follow-up
             </span>
             {followUpInfo.urgency === "overdue" && (
-              <span className="text-[11px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full animate-pulse">
+              <span className="text-[11px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full animate-pulse motion-reduce:animate-none">
                 {followUpInfo.label}
               </span>
             )}
@@ -425,7 +426,7 @@ export function LeadDetailSheet({
               <button
                 type="button"
                 onClick={() => onNextContactChange(lead.id, getQuickDate(0))}
-                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all text-center"
+                className="min-h-[38px] py-2 px-2 text-[11px] font-medium rounded-xl bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all text-center active:scale-[0.98]"
                 title="Agendar retorno para hoje"
               >
                 Hoje
@@ -433,7 +434,7 @@ export function LeadDetailSheet({
               <button
                 type="button"
                 onClick={() => onNextContactChange(lead.id, getQuickDate(1))}
-                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all text-center"
+                className="min-h-[38px] py-2 px-2 text-[11px] font-medium rounded-xl bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all text-center active:scale-[0.98]"
                 title="Agendar retorno para amanhã"
               >
                 +1 dia
@@ -441,7 +442,7 @@ export function LeadDetailSheet({
               <button
                 type="button"
                 onClick={() => onNextContactChange(lead.id, getQuickDate(3))}
-                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all text-center"
+                className="min-h-[38px] py-2 px-2 text-[11px] font-medium rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all text-center active:scale-[0.98]"
                 title="Agendar retorno em 3 dias"
               >
                 +3 dias
@@ -449,7 +450,7 @@ export function LeadDetailSheet({
               <button
                 type="button"
                 onClick={() => onNextContactChange(lead.id, getQuickDate(7))}
-                className="py-1.5 px-2 text-[11px] font-medium rounded-xl bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all text-center"
+                className="min-h-[38px] py-2 px-2 text-[11px] font-medium rounded-xl bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all text-center active:scale-[0.98]"
                 title="Agendar retorno em 1 semana"
               >
                 +7 dias
@@ -543,7 +544,7 @@ export function LeadDetailSheet({
 
           {isNotesDirty && (
             <p className="text-[11px] text-muted-foreground">
-              Dica: Pressione <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">Ctrl + Enter</kbd> ou clique em <strong>Salvar notas</strong>.
+              Dica: Pressione <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[11px]">Ctrl + Enter</kbd> ou clique em <strong>Salvar notas</strong>.
             </p>
           )}
         </div>

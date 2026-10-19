@@ -79,14 +79,14 @@ export function NichoDistribution({
                   {index < 3 ? (
                     <span
                       className={cn(
-                        "size-5 rounded-full flex items-center justify-center text-[10px] font-bold border",
+                        "size-5 rounded-full flex items-center justify-center text-[11px] font-bold border",
                         badgeClass,
                       )}
                     >
                       {index + 1}
                     </span>
                   ) : (
-                    <span className="size-5 rounded-full flex items-center justify-center text-[10px] text-muted-foreground font-medium">
+                    <span className="size-5 rounded-full flex items-center justify-center text-[11px] text-muted-foreground font-medium">
                       {index + 1}
                     </span>
                   )}
@@ -96,7 +96,7 @@ export function NichoDistribution({
                 </div>
                 <div className="flex items-center gap-2">
                   {c.conversionRate !== undefined && c.conversionRate > 0 && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="inline-flex items-center gap-0.5 text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <TrendingUp className="size-2.5" />
                       {c.conversionRate}% conv.
                     </span>

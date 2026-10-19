@@ -3,6 +3,13 @@
 import confetti from "canvas-confetti";
 
 export function fireCelebrationConfetti() {
+  if (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    return;
+  }
+
   const count = 200;
   const defaults = {
     origin: { y: 0.7 },

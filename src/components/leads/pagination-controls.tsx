@@ -110,29 +110,29 @@ export function PaginationControls({
       </div>
 
       {/* Controles de Navegação de Página */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5 sm:gap-1">
         {/* Primeira Página */}
         <Button
           variant="outline"
           size="icon"
-          className="size-7 hidden sm:inline-flex border-border/70"
+          className="size-9 sm:size-7 hidden sm:inline-flex border-border/70 touch-manipulation active:scale-95"
           onClick={() => onPageChange(1)}
           disabled={currentPage <= 1}
           title="Primeira página"
         >
-          <ChevronsLeft className="size-3.5" />
+          <ChevronsLeft className="size-4 sm:size-3.5" />
         </Button>
 
         {/* Anterior */}
         <Button
           variant="outline"
           size="icon"
-          className="size-7 border-border/70"
+          className="size-9 sm:size-7 border-border/70 touch-manipulation active:scale-95"
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage <= 1}
           title="Página anterior"
         >
-          <ChevronLeft className="size-3.5" />
+          <ChevronLeft className="size-4 sm:size-3.5" />
         </Button>
 
         {/* Pílulas de Página para Desktop */}
@@ -156,7 +156,7 @@ export function PaginationControls({
                 variant={isCurrent ? "default" : "ghost"}
                 size="icon"
                 className={cn(
-                  "size-7 text-xs font-mono font-medium transition-colors",
+                  "size-7 text-xs font-mono font-medium transition-colors active:scale-95",
                   isCurrent
                     ? "shadow-sm"
                     : "hover:bg-muted text-muted-foreground hover:text-foreground",
@@ -170,7 +170,7 @@ export function PaginationControls({
         </div>
 
         {/* Indicador Mobile */}
-        <span className="md:hidden px-2 font-mono text-xs text-foreground">
+        <span className="md:hidden px-3 font-mono text-xs text-foreground font-semibold">
           {currentPage} / {safeTotalPages}
         </span>
 
@@ -178,24 +178,24 @@ export function PaginationControls({
         <Button
           variant="outline"
           size="icon"
-          className="size-7 border-border/70"
+          className="size-9 sm:size-7 border-border/70 touch-manipulation active:scale-95"
           onClick={() => onPageChange(Math.min(safeTotalPages, currentPage + 1))}
           disabled={currentPage >= safeTotalPages}
           title="Próxima página"
         >
-          <ChevronRight className="size-3.5" />
+          <ChevronRight className="size-4 sm:size-3.5" />
         </Button>
 
         {/* Última Página */}
         <Button
           variant="outline"
           size="icon"
-          className="size-7 hidden sm:inline-flex border-border/70"
+          className="size-9 sm:size-7 hidden sm:inline-flex border-border/70 touch-manipulation active:scale-95"
           onClick={() => onPageChange(safeTotalPages)}
           disabled={currentPage >= safeTotalPages}
           title="Última página"
         >
-          <ChevronsRight className="size-3.5" />
+          <ChevronsRight className="size-4 sm:size-3.5" />
         </Button>
       </div>
     </div>

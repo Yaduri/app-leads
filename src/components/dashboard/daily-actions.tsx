@@ -153,7 +153,7 @@ export function DailyActions({
                         </span>
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border",
+                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border",
                             isOverdue
                               ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
                               : "bg-amber-500/15 text-amber-300 border-amber-500/30",
@@ -176,7 +176,7 @@ export function DailyActions({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        className="size-9 sm:size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 touch-manipulation active:scale-95"
                         title="Marcar último contato como feito hoje"
                         onClick={() => handleContactDone(lead)}
                       >
@@ -212,7 +212,7 @@ export function DailyActions({
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:text-foreground"
+              className="size-8 sm:size-7 text-muted-foreground hover:text-foreground touch-manipulation active:scale-95"
               onClick={() => setEditingGoal((v) => !v)}
               title="Alterar valor da meta"
             >

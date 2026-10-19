@@ -197,7 +197,7 @@ export function CommandMenu({
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             autoFocus
           />
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
             ESC
           </kbd>
         </div>
@@ -241,7 +241,7 @@ export function CommandMenu({
                   <div className="flex items-center gap-2 shrink-0">
                     <span
                       className={cn(
-                        "text-[10px] font-mono",
+                        "text-[11px] font-mono",
                         isSelected
                           ? "text-primary-foreground/80"
                           : "text-muted-foreground/60",
@@ -252,7 +252,7 @@ export function CommandMenu({
                     {item.shortcut ? (
                       <kbd
                         className={cn(
-                          "rounded px-1.5 py-0.5 font-mono text-[10px] border",
+                          "rounded px-1.5 py-0.5 font-mono text-[11px] border",
                           isSelected
                             ? "bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30"
                             : "bg-muted text-muted-foreground border-border",
@@ -279,16 +279,16 @@ export function CommandMenu({
         <div className="border-t border-border/70 bg-muted/30 px-4 py-2 flex items-center justify-between text-[11px] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-muted px-1 border border-border text-[10px]">↑</kbd>
-              <kbd className="rounded bg-muted px-1 border border-border text-[10px]">↓</kbd>
+              <kbd className="rounded bg-muted px-1 border border-border text-[11px]">↑</kbd>
+              <kbd className="rounded bg-muted px-1 border border-border text-[11px]">↓</kbd>
               Navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-muted px-1 border border-border text-[10px]">↵</kbd>
+              <kbd className="rounded bg-muted px-1 border border-border text-[11px]">↵</kbd>
               Executar
             </span>
           </div>
-          <span className="text-[10px] text-primary font-medium flex items-center gap-1">
+          <span className="text-[11px] text-primary font-medium flex items-center gap-1">
             <Sparkles className="size-3" />
             Atalho N para Novo Lead
           </span>

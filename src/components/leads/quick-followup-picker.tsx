@@ -78,7 +78,9 @@ export function QuickFollowupPicker({
             />
           }
         >
-          {info.urgency === "overdue" && <AlertTriangle className="size-3 shrink-0 text-rose-400 animate-pulse" />}
+          {info.urgency === "overdue" && (
+            <AlertTriangle className="size-3 shrink-0 text-rose-400 animate-pulse motion-reduce:animate-none" />
+          )}
           {info.urgency === "today" && <Clock className="size-3 shrink-0 text-amber-400" />}
           {(info.urgency === "tomorrow" || info.urgency === "future") && (
             <Calendar className="size-3 shrink-0 text-sky-400" />
@@ -96,7 +98,7 @@ export function QuickFollowupPicker({
           </span>
 
           {info.isOverdue && (
-            <span className="text-[10px] font-bold text-rose-400 bg-rose-950/60 px-1 rounded">
+            <span className="text-[11px] font-bold text-rose-400 bg-rose-950/60 px-1 rounded">
               {info.label.split(" ")[1] || "Atrasado"}
             </span>
           )}
@@ -114,7 +116,7 @@ export function QuickFollowupPicker({
               <button
                 type="button"
                 onClick={() => handleApply(null)}
-                className="text-[10px] text-muted-foreground hover:text-rose-400 flex items-center gap-0.5 transition-colors cursor-pointer"
+                className="text-[11px] text-muted-foreground hover:text-rose-400 flex items-center gap-0.5 transition-colors cursor-pointer touch-manipulation active:scale-95"
                 title="Remover agendamento"
               >
                 <X className="size-3" /> Limpar
@@ -127,28 +129,28 @@ export function QuickFollowupPicker({
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(0))}
-              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
               ⚡ Hoje
             </button>
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(1))}
-              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
               ☀️ Amanhã (+1d)
             </button>
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(3))}
-              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
               📆 Em 3 dias
             </button>
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(7))}
-              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
               🗓️ Em 1 semana
             </button>
@@ -156,7 +158,7 @@ export function QuickFollowupPicker({
 
           {/* Input de Data Personalizada */}
           <div className="pt-1.5 border-t border-border/60">
-            <label className="text-[10px] text-muted-foreground block mb-1">
+            <label className="text-[11px] text-muted-foreground block mb-1">
               Ou escolha no calendário:
             </label>
             <div className="flex items-center gap-1">
@@ -170,7 +172,7 @@ export function QuickFollowupPicker({
                 type="button"
                 disabled={!customDate}
                 onClick={() => handleApply(customDate || null)}
-                className="size-7 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all cursor-pointer"
+                className="size-8 sm:size-7 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all cursor-pointer touch-manipulation active:scale-95"
                 title="Salvar data"
               >
                 <Check className="size-3.5" />

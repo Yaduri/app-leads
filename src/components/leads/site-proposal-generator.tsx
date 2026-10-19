@@ -185,7 +185,7 @@ export function SiteProposalGenerator({
                     {formatCurrency(type.defaultPrice)}
                   </span>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
                   {type.description}
                 </p>
               </button>
@@ -231,7 +231,7 @@ export function SiteProposalGenerator({
                   </div>
                   <span className="truncate text-[11px]">{addon.name}</span>
                 </div>
-                <span className="font-mono text-[10px] font-semibold shrink-0 ml-1.5">
+                <span className="font-mono text-[11px] font-semibold shrink-0 ml-1.5">
                   {addon.setupPrice > 0 && `+${formatCurrency(addon.setupPrice)}`}
                   {addon.recurringPrice > 0 && `+${formatCurrency(addon.recurringPrice)}/mês`}
                 </span>
@@ -244,10 +244,11 @@ export function SiteProposalGenerator({
       {/* 3. Valores Finais e Prazo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground">
+          <label htmlFor="proposal-setup-price" className="text-[11px] font-semibold text-muted-foreground">
             Valor de Criação (R$)
           </label>
           <Input
+            id="proposal-setup-price"
             type="number"
             value={finalSetup}
             onChange={(e) => setCustomPrice(Number(e.target.value) || 0)}
@@ -255,10 +256,11 @@ export function SiteProposalGenerator({
           />
         </div>
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground">
+          <label htmlFor="proposal-recurring-price" className="text-[11px] font-semibold text-muted-foreground">
             Hospedagem / Suporte (R$/mês)
           </label>
           <Input
+            id="proposal-recurring-price"
             type="number"
             value={finalRecurring}
             onChange={(e) => setCustomRecurring(Number(e.target.value) || 0)}
@@ -266,10 +268,11 @@ export function SiteProposalGenerator({
           />
         </div>
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground">
+          <label htmlFor="proposal-deadline" className="text-[11px] font-semibold text-muted-foreground">
             Prazo de Entrega
           </label>
           <Input
+            id="proposal-deadline"
             type="text"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}

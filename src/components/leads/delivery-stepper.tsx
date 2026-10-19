@@ -129,7 +129,7 @@ export function DeliveryStepper({
               disabled={readOnly}
               onClick={() => handleSelect(stage.id)}
               className={cn(
-                "group flex flex-col items-center text-center p-1.5 rounded-xl transition-all relative outline-none",
+                "group flex flex-col items-center text-center p-1.5 rounded-xl transition-all relative outline-none touch-manipulation",
                 !readOnly && "hover:bg-muted/60 cursor-pointer active:scale-95",
                 isCurrent && "bg-primary/10 border border-primary/30 shadow-xs",
                 readOnly && "cursor-default",
@@ -148,7 +148,7 @@ export function DeliveryStepper({
               </div>
               <span
                 className={cn(
-                  "text-[10px] font-medium leading-tight line-clamp-1",
+                  "text-[11px] font-medium leading-tight line-clamp-1",
                   isCurrent ? "text-foreground font-bold" : "text-muted-foreground",
                 )}
               >

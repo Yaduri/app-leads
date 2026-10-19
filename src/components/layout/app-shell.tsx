@@ -174,7 +174,7 @@ export function AppShell({
               {!collapsed && <span>Buscar ou Ação...</span>}
             </div>
             {!collapsed && (
-              <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
                 Ctrl+K
               </kbd>
             )}
@@ -252,21 +252,21 @@ export function AppShell({
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 rounded-xl py-1 px-3 min-w-[64px] transition-all",
+                "flex flex-col items-center justify-center gap-1 rounded-xl py-1 px-3 min-w-[64px] min-h-[44px] transition-all touch-manipulation active:scale-95",
                 active
-                  ? "text-primary font-semibold scale-105"
+                  ? "text-primary font-semibold"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               <div
                 className={cn(
-                  "flex size-8 items-center justify-center rounded-lg transition-colors",
+                  "flex size-7 items-center justify-center rounded-lg transition-colors",
                   active && "bg-primary/15",
                 )}
               >
                 <Icon className="size-4" />
               </div>
-              <span className="text-[10px] tracking-tight">{item.label}</span>
+              <span className="text-[11px] tracking-tight leading-none">{item.label}</span>
             </Link>
           );
         })}

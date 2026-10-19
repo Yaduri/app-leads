@@ -120,10 +120,35 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--muted-foreground) 40%, transparent) transparent;
   }
   body {
     @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary font-sans antialiased;
+    caret-color: var(--primary);
   }
+  input, textarea {
+    caret-color: var(--primary);
+  }
+}
+
+/* Sleek scrollbar for Chromium/WebKit */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--muted-foreground) 60%, transparent);
 }
 
 /* Glassmorphism and surface utilities */

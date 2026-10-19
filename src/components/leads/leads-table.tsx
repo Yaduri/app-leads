@@ -390,7 +390,7 @@ export function LeadsTable({
                     </div>
                   )}
                   {lead.valor_recorrente && lead.valor_recorrente > 0 ? (
-                    <div className="font-mono text-[10px] text-sky-400 font-medium">
+                    <div className="font-mono text-[11px] text-sky-400 font-medium">
                       +{formatCurrency(lead.valor_recorrente)}/mês
                     </div>
                   ) : null}
@@ -615,7 +615,7 @@ export function LeadsTable({
                         </span>
                       )}
                       {lead.valor_recorrente && lead.valor_recorrente > 0 ? (
-                        <div className="font-mono text-[10px] text-sky-400 font-medium">
+                        <div className="font-mono text-[11px] text-sky-400 font-medium">
                           +{formatCurrency(lead.valor_recorrente)}/mês
                         </div>
                       ) : null}

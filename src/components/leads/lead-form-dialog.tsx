@@ -354,7 +354,7 @@ export function LeadFormDialog({
                   <button
                     type="button"
                     onClick={() => setDataProximoContato("")}
-                    className="text-[10px] text-muted-foreground hover:text-rose-400"
+                    className="text-[11px] text-muted-foreground hover:text-rose-400 touch-manipulation cursor-pointer"
                   >
                     Limpar
                   </button>
@@ -370,28 +370,28 @@ export function LeadFormDialog({
                 <button
                   type="button"
                   onClick={() => setDataProximoContato(getQuickDate(0))}
-                  className="text-[10px] bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 px-1.5 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 px-2 py-0.5 min-h-[28px] rounded-md transition-all cursor-pointer touch-manipulation active:scale-95"
                 >
                   Hoje
                 </button>
                 <button
                   type="button"
                   onClick={() => setDataProximoContato(getQuickDate(1))}
-                  className="text-[10px] bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 px-1.5 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 px-2 py-0.5 min-h-[28px] rounded-md transition-all cursor-pointer touch-manipulation active:scale-95"
                 >
                   +1d
                 </button>
                 <button
                   type="button"
                   onClick={() => setDataProximoContato(getQuickDate(3))}
-                  className="text-[10px] bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 px-1.5 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 px-2 py-0.5 min-h-[28px] rounded-md transition-all cursor-pointer touch-manipulation active:scale-95"
                 >
                   +3d
                 </button>
                 <button
                   type="button"
                   onClick={() => setDataProximoContato(getQuickDate(7))}
-                  className="text-[10px] bg-muted/60 text-muted-foreground hover:bg-muted border border-border/60 px-1.5 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] bg-muted/60 text-muted-foreground hover:bg-muted border border-border/60 px-2 py-0.5 min-h-[28px] rounded-md transition-all cursor-pointer touch-manipulation active:scale-95"
                 >
                   +7d
                 </button>

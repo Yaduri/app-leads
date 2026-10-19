@@ -417,7 +417,7 @@ print(response.json())`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-xs text-foreground">{proj.name}</span>
-                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-mono">
+                    <span className="text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-mono">
                       Setup
                     </span>
                   </div>
@@ -455,7 +455,7 @@ print(response.json())`}
                   <span className="font-medium text-xs text-foreground block">{addon.name}</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[10px] text-muted-foreground">Criação (R$)</label>
+                      <label className="text-[11px] text-muted-foreground">Criação (R$)</label>
                       <Input
                         type="number"
                         value={addon.setupPrice}
@@ -469,7 +469,7 @@ print(response.json())`}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] text-muted-foreground">Mensalidade (R$/mês)</label>
+                      <label className="text-[11px] text-muted-foreground">Mensalidade (R$/mês)</label>
                       <Input
                         type="number"
                         value={addon.recurringPrice}
@@ -551,7 +551,7 @@ print(response.json())`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-foreground">{tpl.title}</span>
-                  <span className="text-[10px] text-muted-foreground">{tpl.description}</span>
+                  <span className="text-[11px] text-muted-foreground">{tpl.description}</span>
                 </div>
                 <Textarea
                   value={tpl.text}

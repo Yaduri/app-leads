@@ -624,7 +624,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("all")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "all"
               ? "bg-primary text-primary-foreground border-primary shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-foreground hover:bg-card",
@@ -634,7 +634,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           <span>Todos</span>
           <span
             className={cn(
-              "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+              "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
               quickFilter === "all"
                 ? "bg-primary-foreground/20 text-primary-foreground"
                 : "bg-muted text-muted-foreground",
@@ -648,7 +648,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("hoje")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "hoje"
               ? "bg-sky-500 text-white border-sky-600 shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-sky-400 hover:bg-card",
@@ -659,7 +659,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           {smartCounts.hoje > 0 && (
             <span
               className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
                 quickFilter === "hoje"
                   ? "bg-white/25 text-white"
                   : "bg-sky-500/15 text-sky-500 font-bold",
@@ -674,7 +674,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("atrasados")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "atrasados"
               ? "bg-rose-600 text-white border-rose-700 shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-rose-400 hover:bg-card",
@@ -685,7 +685,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           {smartCounts.atrasados > 0 && (
             <span
               className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
                 quickFilter === "atrasados"
                   ? "bg-white/25 text-white"
                   : "bg-rose-500/20 text-rose-500 font-bold",
@@ -700,7 +700,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("negociacao")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "negociacao"
               ? "bg-violet-600 text-white border-violet-700 shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-violet-400 hover:bg-card",
@@ -711,7 +711,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           {smartCounts.negociacao > 0 && (
             <span
               className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
                 quickFilter === "negociacao"
                   ? "bg-white/25 text-white"
                   : "bg-violet-500/15 text-violet-500 font-bold",
@@ -726,7 +726,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("producao")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "producao"
               ? "bg-amber-500 text-white border-amber-600 shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-amber-400 hover:bg-card",
@@ -737,7 +737,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           {smartCounts.producao > 0 && (
             <span
               className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
                 quickFilter === "producao"
                   ? "bg-white/25 text-white"
                   : "bg-amber-500/15 text-amber-500 font-bold",
@@ -752,7 +752,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("vendas")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "vendas"
               ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-emerald-400 hover:bg-card",
@@ -763,7 +763,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           {smartCounts.vendas > 0 && (
             <span
               className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
                 quickFilter === "vendas"
                   ? "bg-white/25 text-white"
                   : "bg-emerald-500/15 text-emerald-500 font-bold",
@@ -778,7 +778,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           type="button"
           onClick={() => setQuickFilter("mensalidades")}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium transition-all shrink-0 border active:scale-[0.98]",
             quickFilter === "mensalidades"
               ? "bg-sky-600 text-white border-sky-700 shadow-sm"
               : "bg-card/50 text-muted-foreground border-border/70 hover:text-sky-400 hover:bg-card",
@@ -789,7 +789,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           {smartCounts.mensalidades > 0 && (
             <span
               className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                "px-1.5 py-0.5 rounded-full text-[11px] font-semibold font-mono leading-none",
                 quickFilter === "mensalidades"
                   ? "bg-white/25 text-white"
                   : "bg-sky-500/15 text-sky-400 font-bold",

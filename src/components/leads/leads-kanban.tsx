@@ -127,7 +127,7 @@ export function LeadsKanban({
                       </span>
                     )}
                     {columnRecurringValue > 0 && (
-                      <span className="text-[9px] font-mono font-medium text-sky-400">
+                      <span className="text-[11px] font-mono font-medium text-sky-400">
                         +{formatCurrency(columnRecurringValue)}/mês
                       </span>
                     )}
@@ -191,7 +191,7 @@ export function LeadsKanban({
                         compact
                       />
                       {lead.valor_recorrente && lead.valor_recorrente > 0 ? (
-                        <span className="text-[10px] font-mono font-medium text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded-md">
+                        <span className="text-[11px] font-mono font-medium text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded-md">
                           +{formatCurrency(lead.valor_recorrente)}/mês
                         </span>
                       ) : null}

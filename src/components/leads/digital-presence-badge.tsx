@@ -98,7 +98,7 @@ export function DigitalPresenceBadge({
         config.bg,
         config.text,
         config.border,
-        compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
+        compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
       )}
     >
       <Icon className={compact ? "size-2.5" : "size-3"} />
