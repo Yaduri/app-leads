@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -91,6 +91,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
 
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [nicho, setNicho] = useState<SelectValueOpt>("all");
   const [status, setStatus] = useState<SelectValueOpt>("all");
   const [venda, setVenda] = useState<SelectValueOpt>("all");
@@ -135,7 +136,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   }, [localLeads]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = deferredSearch.trim().toLowerCase();
     const digits = q.replace(/\D/g, "");
     return localLeads.filter((lead) => {
       // Smart Views Quick filters
@@ -171,7 +172,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       const matchVenda = venda === "all" || lead.venda_realizada === venda;
       return matchSearch && matchNicho && matchStatus && matchVenda;
     });
-  }, [localLeads, search, nicho, status, venda, quickFilter]);
+  }, [localLeads, deferredSearch, nicho, status, venda, quickFilter]);
 
   const handleToggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
@@ -259,7 +260,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success(`Status alterado para "${nextStatus}"`);
-    router.refresh();
   }
 
   async function handleSaleChange(id: string, nextSale: SaleStatus) {
@@ -287,7 +287,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       toast.error(result.error);
       return;
     }
-    router.refresh();
   }
 
   async function handleValueChange(id: string, nextValue: number) {
@@ -309,7 +308,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success("Valor atualizado!");
-    router.refresh();
   }
 
   async function handleNextContactChange(id: string, nextDate: string | null) {
@@ -333,7 +331,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success(nextDate ? "Follow-up agendado!" : "Follow-up desmarcado");
-    router.refresh();
   }
 
   async function handleContactDateChange(id: string, nextDate: string) {
@@ -355,7 +352,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success("Último contato atualizado para hoje!");
-    router.refresh();
   }
 
   async function handlePresenceChange(id: string, presence: PresencaDigital) {
@@ -377,7 +373,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success(`Presença digital: ${presence}`);
-    router.refresh();
   }
 
   async function handleDeliveryStageChange(id: string, stage: EtapaEntrega) {
@@ -399,7 +394,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success(`Etapa de entrega: ${stage}`);
-    router.refresh();
   }
 
   async function handleApplyProposalValues(id: string, setup: number, recurring: number) {
@@ -427,7 +421,6 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success("Valores da proposta salvos no lead!");
-    router.refresh();
   }
 
   const hasFilters =

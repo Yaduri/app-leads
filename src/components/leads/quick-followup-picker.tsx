@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Calendar, Clock, AlertTriangle, Check, X } from "lucide-react";
 import { formatSimpleDate, getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { LeadStatus, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -58,124 +59,126 @@ export function QuickFollowupPicker({
   };
 
   return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none",
-          compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
-          getBadgeStyle()
-        )}
-        title={
-          dataProximoContato
-            ? `Próximo contato agendado para: ${formatSimpleDate(dataProximoContato)}`
-            : "Clique para agendar retorno"
-        }
-      >
-        {info.urgency === "overdue" && <AlertTriangle className="size-3 shrink-0 text-rose-400 animate-pulse" />}
-        {info.urgency === "today" && <Clock className="size-3 shrink-0 text-amber-400" />}
-        {(info.urgency === "tomorrow" || info.urgency === "future") && (
-          <Calendar className="size-3 shrink-0 text-sky-400" />
-        )}
-        {info.urgency === "none" && <Calendar className="size-3 shrink-0 opacity-60" />}
-
-        <span className="font-medium whitespace-nowrap">
-          {dataProximoContato
-            ? info.urgency === "today"
-              ? "Hoje"
-              : info.urgency === "tomorrow"
-              ? "Amanhã"
-              : formatSimpleDate(dataProximoContato)
-            : "Agendar"}
-        </span>
-
-        {info.isOverdue && (
-          <span className="text-[10px] font-bold text-rose-400 bg-rose-950/60 px-1 rounded">
-            {info.label.split(" ")[1] || "Atrasado"}
-          </span>
-        )}
-      </button>
-
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute left-0 top-full mt-1 z-50 w-56 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl p-2.5 shadow-xl shadow-black/40 text-foreground animate-in fade-in zoom-in-95 duration-100">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1 pb-1.5 flex items-center justify-between">
-              <span>Próximo Contato</span>
-              {dataProximoContato && (
-                <button
-                  type="button"
-                  onClick={() => handleApply(null)}
-                  className="text-[10px] text-muted-foreground hover:text-rose-400 flex items-center gap-0.5 transition-colors"
-                  title="Remover agendamento"
-                >
-                  <X className="size-3" /> Limpar
-                </button>
+    <div className="inline-block" onClick={(e) => e.stopPropagation()}>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none",
+                compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
+                getBadgeStyle()
               )}
-            </div>
+              title={
+                dataProximoContato
+                  ? `Próximo contato agendado para: ${formatSimpleDate(dataProximoContato)}`
+                  : "Clique para agendar retorno"
+              }
+            />
+          }
+        >
+          {info.urgency === "overdue" && <AlertTriangle className="size-3 shrink-0 text-rose-400 animate-pulse" />}
+          {info.urgency === "today" && <Clock className="size-3 shrink-0 text-amber-400" />}
+          {(info.urgency === "tomorrow" || info.urgency === "future") && (
+            <Calendar className="size-3 shrink-0 text-sky-400" />
+          )}
+          {info.urgency === "none" && <Calendar className="size-3 shrink-0 opacity-60" />}
 
-            {/* Botões Rápidos */}
-            <div className="grid grid-cols-2 gap-1 mb-2">
-              <button
-                type="button"
-                onClick={() => handleApply(getQuickDate(0))}
-                className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all"
-              >
-                ⚡ Hoje
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApply(getQuickDate(1))}
-                className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all"
-              >
-                ☀️ Amanhã (+1d)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApply(getQuickDate(3))}
-                className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all"
-              >
-                📆 Em 3 dias
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApply(getQuickDate(7))}
-                className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all"
-              >
-                🗓️ Em 1 semana
-              </button>
-            </div>
+          <span className="font-medium whitespace-nowrap">
+            {dataProximoContato
+              ? info.urgency === "today"
+                ? "Hoje"
+                : info.urgency === "tomorrow"
+                ? "Amanhã"
+                : formatSimpleDate(dataProximoContato)
+              : "Agendar"}
+          </span>
 
-            {/* Input de Data Personalizada */}
-            <div className="pt-1.5 border-t border-border/60">
-              <label className="text-[10px] text-muted-foreground block mb-1">
-                Ou escolha no calendário:
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="date"
-                  value={customDate}
-                  onChange={(e) => setCustomDate(e.target.value)}
-                  className="flex-1 rounded-md border border-border/80 bg-background/80 px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
-                />
-                <button
-                  type="button"
-                  disabled={!customDate}
-                  onClick={() => handleApply(customDate || null)}
-                  className="size-7 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all"
-                  title="Salvar data"
-                >
-                  <Check className="size-3.5" />
-                </button>
-              </div>
+          {info.isOverdue && (
+            <span className="text-[10px] font-bold text-rose-400 bg-rose-950/60 px-1 rounded">
+              {info.label.split(" ")[1] || "Atrasado"}
+            </span>
+          )}
+        </PopoverTrigger>
+
+        <PopoverContent
+          align="start"
+          side="bottom"
+          sideOffset={6}
+          className="w-56 p-2.5"
+        >
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1 pb-1.5 flex items-center justify-between">
+            <span>Próximo Contato</span>
+            {dataProximoContato && (
+              <button
+                type="button"
+                onClick={() => handleApply(null)}
+                className="text-[10px] text-muted-foreground hover:text-rose-400 flex items-center gap-0.5 transition-colors cursor-pointer"
+                title="Remover agendamento"
+              >
+                <X className="size-3" /> Limpar
+              </button>
+            )}
+          </div>
+
+          {/* Botões Rápidos */}
+          <div className="grid grid-cols-2 gap-1 mb-2">
+            <button
+              type="button"
+              onClick={() => handleApply(getQuickDate(0))}
+              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer"
+            >
+              ⚡ Hoje
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApply(getQuickDate(1))}
+              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all cursor-pointer"
+            >
+              ☀️ Amanhã (+1d)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApply(getQuickDate(3))}
+              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all cursor-pointer"
+            >
+              📆 Em 3 dias
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApply(getQuickDate(7))}
+              className="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-lg bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all cursor-pointer"
+            >
+              🗓️ Em 1 semana
+            </button>
+          </div>
+
+          {/* Input de Data Personalizada */}
+          <div className="pt-1.5 border-t border-border/60">
+            <label className="text-[10px] text-muted-foreground block mb-1">
+              Ou escolha no calendário:
+            </label>
+            <div className="flex items-center gap-1">
+              <input
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                className="flex-1 rounded-md border border-border/80 bg-background/80 px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                disabled={!customDate}
+                onClick={() => handleApply(customDate || null)}
+                className="size-7 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all cursor-pointer"
+                title="Salvar data"
+              >
+                <Check className="size-3.5" />
+              </button>
             </div>
           </div>
-        </>
-      )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

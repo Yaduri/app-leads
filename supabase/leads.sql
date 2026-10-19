@@ -66,6 +66,8 @@ grant select, insert on table public.leads to anon;
 -- Indices para consultas comuns
 -- =============================================================
 create index if not exists leads_user_id_idx   on public.leads (user_id);
+create index if not exists leads_user_created_at_idx on public.leads (user_id, created_at desc);
+create index if not exists leads_proximo_contato_idx on public.leads (user_id, data_proximo_contato);
 create index if not exists leads_nicho_idx     on public.leads (user_id, nicho);
 create index if not exists leads_status_idx    on public.leads (user_id, status_prospeccao);
 create index if not exists leads_venda_idx     on public.leads (user_id, venda_realizada);
