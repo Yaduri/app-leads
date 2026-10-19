@@ -29,6 +29,7 @@ export function LeadsKanban({
   onSelectLead,
   onNextContactChange,
   onContactDateChange,
+  onWhatsAppSent,
 }: {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
@@ -36,6 +37,7 @@ export function LeadsKanban({
   onSelectLead?: (lead: Lead) => void;
   onNextContactChange?: (id: string, date: string | null) => void;
   onContactDateChange?: (id: string, date: string) => void;
+  onWhatsAppSent?: (lead: Lead) => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null);
@@ -232,6 +234,7 @@ export function LeadsKanban({
                         defaultMessage={lead.msg_a_mandar}
                         label="WhatsApp"
                         compact={false}
+                        onContactSent={() => onWhatsAppSent?.(lead)}
                       />
                       <div className="flex items-center gap-1">
                         {onContactDateChange && (

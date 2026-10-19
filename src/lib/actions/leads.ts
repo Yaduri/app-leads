@@ -3,10 +3,17 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import type { EtapaEntrega, LeadInsert, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
+import type {
+  EtapaEntrega,
+  Lead,
+  LeadInsert,
+  LeadStatus,
+  PresencaDigital,
+  SaleStatus,
+} from "@/lib/types";
 
 export type ActionResult =
-  | { ok: true }
+  | { ok: true; lead?: Lead }
   | { ok: false; error: string };
 
 async function getUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
@@ -40,15 +47,16 @@ export async function createLead(
   const invalid = validateLeadInput(values);
   if (invalid) return { ok: false, error: invalid };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("leads")
-    .insert({ ...values, user_id: userId });
+    .insert({ ...values, user_id: userId })
+    .select("*")
+    .single();
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
-  return { ok: true };
+  return { ok: true, lead: data as Lead };
 }
 
 export async function updateLead(
@@ -62,17 +70,18 @@ export async function updateLead(
   const invalid = validateLeadInput(values);
   if (invalid) return { ok: false, error: invalid };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("leads")
     .update(values)
     .eq("id", id)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("*")
+    .single();
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
-  return { ok: true };
+  return { ok: true, lead: data as Lead };
 }
 
 export async function updateLeadStatus(
@@ -91,7 +100,6 @@ export async function updateLeadStatus(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -112,7 +120,6 @@ export async function updateLeadSale(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -133,7 +140,6 @@ export async function updateLeadValue(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -154,7 +160,7 @@ export async function updateLeadNextContact(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -174,7 +180,7 @@ export async function updateLeadContactDate(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -194,7 +200,6 @@ export async function updateLeadRecurringValue(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -215,7 +220,6 @@ export async function updateLeadDigitalPresence(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   return { ok: true };
 }
 
@@ -235,7 +239,6 @@ export async function updateLeadDeliveryStage(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -256,7 +259,33 @@ export async function updateLeadCurrentSite(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
+  return { ok: true };
+}
+
+export async function updateLeadNotes(
+  id: string,
+  observacoes: string | null,
+  msg_a_mandar?: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const payload: { observacoes: string | null; msg_a_mandar?: string | null } = {
+    observacoes: observacoes?.trim() || null,
+  };
+  if (msg_a_mandar !== undefined) {
+    payload.msg_a_mandar = msg_a_mandar?.trim() || null;
+  }
+
+  const { error } = await supabase
+    .from("leads")
+    .update(payload)
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
   return { ok: true };
 }
 
@@ -273,7 +302,6 @@ export async function deleteLead(id: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -324,7 +352,50 @@ export async function bulkUpdateLeadStatus(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function bulkUpdateNextContact(
+  ids: string[],
+  nextDate: string | null,
+): Promise<ActionResult> {
+  if (ids.length === 0) return { ok: true };
+
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ data_proximo_contato: nextDate })
+    .in("id", ids)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function bulkUpdateContactDate(
+  ids: string[],
+  contactDate: string,
+): Promise<ActionResult> {
+  if (ids.length === 0) return { ok: true };
+
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ data_contato: contactDate })
+    .in("id", ids)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -346,7 +417,6 @@ export async function bulkDeleteLeads(
 
   if (error) return { ok: false, error: mapError(error) };
 
-  revalidatePath("/leads");
   revalidatePath("/dashboard");
   return { ok: true };
 }

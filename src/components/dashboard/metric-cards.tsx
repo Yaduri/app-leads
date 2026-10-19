@@ -153,11 +153,17 @@ export function MetricCards({ metrics }: { metrics: Metrics }) {
               <Users className="size-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-lg font-bold text-foreground">Base Total de Oportunidades</h3>
                 <span className="rounded-full bg-sky-500/15 text-sky-300 text-xs px-2.5 py-0.5 border border-sky-500/25 font-mono">
                   {metrics.total} leads
                 </span>
+                {metrics.followUpCount > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-300 text-xs px-2.5 py-0.5 border border-amber-500/25 font-mono">
+                    <BellRing className="size-3" />
+                    {metrics.followUpCount} pendente(s) hoje/atrasados
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Total de contatos e prospecções geradas no seu CRM

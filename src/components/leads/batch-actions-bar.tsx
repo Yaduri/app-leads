@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckSquare, Trash2, X, ArrowRight, Loader2 } from "lucide-react";
+import { CheckSquare, Trash2, X, Loader2, CalendarCheck, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,19 +23,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { LEAD_STATUSES } from "@/lib/constants";
+import { getQuickDate } from "@/lib/follow-up";
 import type { LeadStatus } from "@/lib/types";
-import { bulkUpdateLeadStatus, bulkDeleteLeads } from "@/lib/actions/leads";
+import {
+  bulkUpdateLeadStatus,
+  bulkUpdateNextContact,
+  bulkUpdateContactDate,
+  bulkDeleteLeads,
+} from "@/lib/actions/leads";
 
 interface BatchActionsBarProps {
   selectedIds: string[];
   onClearSelection: () => void;
-  onSuccess: () => void;
+  onBulkStatusUpdated?: (ids: string[], status: LeadStatus) => void;
+  onBulkFollowUpUpdated?: (ids: string[], date: string | null) => void;
+  onBulkContactDateUpdated?: (ids: string[], date: string) => void;
+  onBulkDeleted?: (ids: string[]) => void;
 }
 
 export function BatchActionsBar({
   selectedIds,
   onClearSelection,
-  onSuccess,
+  onBulkStatusUpdated,
+  onBulkFollowUpUpdated,
+  onBulkContactDateUpdated,
+  onBulkDeleted,
 }: BatchActionsBarProps) {
   const [isPending, startTransition] = useTransition();
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
@@ -43,26 +55,76 @@ export function BatchActionsBar({
   if (selectedIds.length === 0) return null;
 
   const handleStatusChange = (status: LeadStatus) => {
+    const ids = [...selectedIds];
+    onBulkStatusUpdated?.(ids, status);
+    onClearSelection();
+
     startTransition(async () => {
-      const res = await bulkUpdateLeadStatus(selectedIds, status);
+      const res = await bulkUpdateLeadStatus(ids, status);
       if (res.ok) {
-        toast.success(`${selectedIds.length} lead(s) atualizado(s) para "${status}"`);
-        onClearSelection();
-        onSuccess();
+        toast.success(`${ids.length} lead(s) atualizado(s) para "${status}"`);
       } else {
         toast.error(res.error || "Erro ao atualizar leads");
       }
     });
   };
 
-  const handleDelete = () => {
+  const handleFollowUpChange = (val: string) => {
+    const ids = [...selectedIds];
+    const nextDate =
+      val === "clear"
+        ? null
+        : val === "today"
+          ? getQuickDate(0)
+          : val === "tomorrow"
+            ? getQuickDate(1)
+            : val === "3days"
+              ? getQuickDate(3)
+              : getQuickDate(7);
+
+    onBulkFollowUpUpdated?.(ids, nextDate);
+    onClearSelection();
+
     startTransition(async () => {
-      const res = await bulkDeleteLeads(selectedIds);
+      const res = await bulkUpdateNextContact(ids, nextDate);
       if (res.ok) {
-        toast.success(`${selectedIds.length} lead(s) excluído(s) com sucesso`);
-        setDeleteAlertOpen(false);
-        onClearSelection();
-        onSuccess();
+        toast.success(
+          nextDate
+            ? `Follow-up agendado para ${ids.length} lead(s)!`
+            : `Follow-up desmarcado em ${ids.length} lead(s)`,
+        );
+      } else {
+        toast.error(res.error || "Erro ao agendar follow-up em massa");
+      }
+    });
+  };
+
+  const handleMarkContactToday = () => {
+    const ids = [...selectedIds];
+    const today = getQuickDate(0);
+    onBulkContactDateUpdated?.(ids, today);
+    onClearSelection();
+
+    startTransition(async () => {
+      const res = await bulkUpdateContactDate(ids, today);
+      if (res.ok) {
+        toast.success(`Último contato atualizado para hoje em ${ids.length} lead(s)!`);
+      } else {
+        toast.error(res.error || "Erro ao atualizar último contato em massa");
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    const ids = [...selectedIds];
+    onBulkDeleted?.(ids);
+    setDeleteAlertOpen(false);
+    onClearSelection();
+
+    startTransition(async () => {
+      const res = await bulkDeleteLeads(ids);
+      if (res.ok) {
+        toast.success(`${ids.length} lead(s) excluído(s) com sucesso`);
       } else {
         toast.error(res.error || "Erro ao excluir leads");
       }
@@ -71,20 +133,21 @@ export function BatchActionsBar({
 
   return (
     <>
-      <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 max-w-xl w-[92vw] sm:w-auto animate-in fade-in slide-in-from-bottom-4 duration-200">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-card/90 backdrop-blur-xl border border-primary/20 shadow-2xl shadow-primary/10 text-foreground">
-          <div className="flex items-center gap-2">
+      <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 max-w-3xl w-[94vw] sm:w-auto animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-2.5 rounded-2xl bg-card/95 backdrop-blur-xl border border-primary/25 shadow-2xl shadow-primary/10 text-foreground">
+          <div className="flex items-center gap-2 pr-1">
             <div className="flex size-7 items-center justify-center rounded-lg bg-primary/20 text-primary">
               <CheckSquare className="size-4" />
             </div>
-            <span className="text-sm font-semibold whitespace-nowrap">
-              {selectedIds.length} {selectedIds.length === 1 ? "lead selecionado" : "leads selecionados"}
+            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
+              {selectedIds.length} {selectedIds.length === 1 ? "selecionado" : "selecionados"}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Mudar Status em Massa */}
             <Select onValueChange={(val) => handleStatusChange(val as LeadStatus)} disabled={isPending}>
-              <SelectTrigger className="h-8 text-xs min-w-[140px] bg-background/50 border-border/70">
+              <SelectTrigger className="h-8 text-xs min-w-[130px] bg-background/60 border-border/70">
                 <SelectValue placeholder="Mudar Status..." />
               </SelectTrigger>
               <SelectContent>
@@ -96,6 +159,35 @@ export function BatchActionsBar({
               </SelectContent>
             </Select>
 
+            {/* Agendar Follow-up em Massa */}
+            <Select onValueChange={(val) => handleFollowUpChange(String(val))} disabled={isPending}>
+              <SelectTrigger className="h-8 text-xs min-w-[140px] bg-background/60 border-border/70">
+                <Clock className="size-3.5 text-amber-400 mr-1 shrink-0" />
+                <SelectValue placeholder="Agendar Retorno..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">⚡ Para Hoje</SelectItem>
+                <SelectItem value="tomorrow">☀️ Para Amanhã (+1d)</SelectItem>
+                <SelectItem value="3days">📅 Daqui a 3 dias</SelectItem>
+                <SelectItem value="7days">🗓️ Daqui a 7 dias</SelectItem>
+                <SelectItem value="clear">❌ Limpar Follow-up</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Atualizar Último Contato para Hoje em Massa */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2.5 text-xs font-medium gap-1.5 bg-background/60 border-border/70 hover:text-primary"
+              onClick={handleMarkContactToday}
+              disabled={isPending}
+              title="Atualizar último contato de todos os selecionados para hoje"
+            >
+              <CalendarCheck className="size-3.5 text-primary" />
+              <span className="hidden sm:inline">Contato Hoje</span>
+            </Button>
+
+            {/* Excluir em Massa */}
             <Button
               variant="destructive"
               size="sm"

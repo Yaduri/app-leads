@@ -4,26 +4,24 @@ import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import type { Lead } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Configurações | CRM de Leads",
 };
 
-export default async function ConfiguraacoesPage() {
+export default async function ConfiguracoesPage() {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
 
   const supabase = await createClient();
-  const { data: leads, error } = await supabase
+  const { count, error } = await supabase
     .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact", head: true });
 
   if (error) {
-    console.error("Error loading leads for settings page:", error);
+    console.error("Error loading leads count for settings page:", error);
   }
 
   const userName = user.user_metadata?.user_name || "CRM de Leads";
@@ -41,7 +39,7 @@ export default async function ConfiguraacoesPage() {
         userId={user.id}
         userEmail={user.email ?? ""}
         initialUsername={userName}
-        leads={(leads as Lead[]) ?? []}
+        leadsCount={count ?? 0}
       />
     </div>
   );

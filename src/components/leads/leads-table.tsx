@@ -32,12 +32,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDateBR } from "@/lib/format";
-import { formatSimpleDate, getQuickDate } from "@/lib/follow-up";
+import { formatSimpleDate, getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
 import type { Lead, LeadStatus, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface LeadsTableProps {
   leads: Lead[];
+  filterKey?: string;
   onEdit: (lead: Lead) => void;
   onDelete: (lead: Lead) => void;
   onSelectLead?: (lead: Lead) => void;
@@ -46,6 +47,7 @@ interface LeadsTableProps {
   onValueChange?: (id: string, val: number) => void;
   onNextContactChange?: (id: string, date: string | null) => void;
   onContactDateChange?: (id: string, date: string) => void;
+  onWhatsAppSent?: (lead: Lead) => void;
   selectedIds?: string[];
   onToggleSelect?: (id: string) => void;
   onSelectAll?: () => void;
@@ -53,20 +55,9 @@ interface LeadsTableProps {
   onClearSelection?: () => void;
 }
 
-function getFollowUpStatus(dateStr: string | null, status: LeadStatus) {
-  if (!dateStr || status === "Concluído" || status === "Sem interesse") return null;
-  const contactDate = new Date(dateStr + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diff = Math.floor((today.getTime() - contactDate.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff > 0) {
-    return { overdue: true, days: diff };
-  }
-  return null;
-}
-
 export function LeadsTable({
   leads,
+  filterKey,
   onEdit,
   onDelete,
   onSelectLead,
@@ -75,6 +66,7 @@ export function LeadsTable({
   onValueChange,
   onNextContactChange,
   onContactDateChange,
+  onWhatsAppSent,
   selectedIds = [],
   onToggleSelect,
   onSelectAll,
@@ -86,10 +78,10 @@ export function LeadsTable({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
 
-  // Reinicia para a página 1 ao alterar filtros ou lista externa
+  // Reinicia para a página 1 apenas quando filtros ou busca mudam (não ao excluir/editar 1 lead)
   useEffect(() => {
     setPage(1);
-  }, [leads.length]);
+  }, [filterKey]);
 
   function handleSort(field: keyof Lead) {
     if (sortField === field) {
@@ -105,6 +97,26 @@ export function LeadsTable({
     if (!sortField) return leads;
 
     return [...leads].sort((a, b) => {
+      if (sortField === "data_proximo_contato") {
+        const infoA = getFollowUpInfo(a);
+        const infoB = getFollowUpInfo(b);
+        const priorityMap = {
+          overdue: 1,
+          today: 2,
+          tomorrow: 3,
+          future: 4,
+          none: 5,
+        };
+        const pA = priorityMap[infoA.urgency];
+        const pB = priorityMap[infoB.urgency];
+        if (pA !== pB) {
+          return sortDirection === "asc" ? pA - pB : pB - pA;
+        }
+        return sortDirection === "asc"
+          ? infoA.diffDays - infoB.diffDays
+          : infoB.diffDays - infoA.diffDays;
+      }
+
       const aVal = a[sortField];
       const bVal = b[sortField];
 
@@ -264,7 +276,7 @@ export function LeadsTable({
       <div className="grid grid-cols-1 gap-3 md:hidden">
         {displayedLeads.map((lead) => {
           const isSelected = selectedIds.includes(lead.id);
-          const followUp = getFollowUpStatus(lead.data_contato, lead.status_prospeccao);
+          const followUp = getFollowUpInfo(lead);
 
           return (
             <div
@@ -385,10 +397,10 @@ export function LeadsTable({
                 </div>
               </div>
 
-              {followUp && (
+              {followUp.isOverdue && (
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20">
                   <AlertCircle className="size-3" />
-                  <span>Follow-up atrasado há {followUp.days} {followUp.days === 1 ? "dia" : "dias"}</span>
+                  <span>Follow-up atrasado ({followUp.label})</span>
                 </div>
               )}
 
@@ -423,6 +435,7 @@ export function LeadsTable({
                   defaultMessage={lead.msg_a_mandar}
                   label="WhatsApp"
                   compact={false}
+                  onContactSent={() => onWhatsAppSent?.(lead)}
                 />
               </div>
             </div>
@@ -474,7 +487,6 @@ export function LeadsTable({
             <TableBody>
               {displayedLeads.map((lead) => {
                 const isSelected = selectedIds.includes(lead.id);
-                const followUp = getFollowUpStatus(lead.data_contato, lead.status_prospeccao);
 
                 return (
                   <TableRow
@@ -499,6 +511,7 @@ export function LeadsTable({
                         nicho={lead.nicho}
                         defaultMessage={lead.msg_a_mandar}
                         compact
+                        onContactSent={() => onWhatsAppSent?.(lead)}
                       />
                     </TableCell>
                     <TableCell className="max-w-[220px]">

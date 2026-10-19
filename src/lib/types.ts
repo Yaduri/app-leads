@@ -20,7 +20,7 @@ export type EtapaEntrega =
   | "Revisão com Cliente"
   | "Site no Ar";
 
-export type ActionResult = { ok: boolean; error?: string };
+export type ActionResult = { ok: boolean; error?: string; lead?: Lead };
 
 export interface Lead {
   id: string;

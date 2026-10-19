@@ -29,6 +29,7 @@ interface WhatsAppTemplateMenuProps {
   defaultMessage?: string | null;
   label?: string;
   compact?: boolean;
+  onContactSent?: () => void;
 }
 
 export function WhatsAppTemplateMenu({
@@ -38,6 +39,7 @@ export function WhatsAppTemplateMenu({
   defaultMessage,
   label,
   compact = true,
+  onContactSent,
 }: WhatsAppTemplateMenuProps) {
   const firstName = name.trim().split(" ")[0] || "Olá";
   const nichoText = nicho ? nicho.toLowerCase() : "seu segmento";
@@ -114,6 +116,7 @@ export function WhatsAppTemplateMenu({
     const url = buildWhatsAppUrl(phone, text);
     if (url) {
       window.open(url, "_blank", "noopener,noreferrer");
+      onContactSent?.();
     }
   };
 
@@ -124,7 +127,14 @@ export function WhatsAppTemplateMenu({
     >
       {/* Botão Principal de Envio Rápido */}
       <Button
-        render={<a href={primaryUrl || "#"} target="_blank" rel="noopener noreferrer" />}
+        render={
+          <a
+            href={primaryUrl || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onContactSent?.()}
+          />
+        }
         size={label ? "default" : "icon"}
         className={cn(
           "bg-emerald-600 text-white hover:bg-emerald-500 active:scale-[0.98] transition-all font-medium",

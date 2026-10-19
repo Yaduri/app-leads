@@ -3,6 +3,35 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/actions/leads";
+import type { Lead } from "@/lib/types";
+
+export async function getLeadsForExport(): Promise<
+  { ok: true; leads: Lead[] } | { ok: false; error: string }
+> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, error: "Sessão expirada. Faça login novamente." };
+  }
+
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message ?? "Não foi possível carregar os leads para exportação.",
+    };
+  }
+
+  return { ok: true, leads: (data as Lead[]) ?? [] };
+}
 
 export async function deleteAllLeads(): Promise<ActionResult> {
   const supabase = await createClient();
@@ -30,6 +59,7 @@ export async function deleteAllLeads(): Promise<ActionResult> {
 
   revalidatePath("/leads");
   revalidatePath("/dashboard");
+  revalidatePath("/configuracoes");
 
   return { ok: true };
 }

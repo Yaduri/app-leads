@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
       body?.user_id ||
       rawList[0]?.user_id;
 
-    if (!targetUserId) {
-      // Busca o user_id do primeiro lead cadastrado ou do usuário ativo
+    // Só faz fallback automático se CRM_API_KEY estiver configurada e validada
+    if (!targetUserId && process.env.CRM_API_KEY) {
       const { data: existingLead } = await supabase
         .from("leads")
         .select("user_id")
@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
       if (existingLead?.user_id) {
         targetUserId = existingLead.user_id;
       } else {
-        // Busca na tabela de usuários do Supabase
         try {
           const { data: usersData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
           if (usersData?.users?.[0]?.id) {
@@ -92,15 +91,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!targetUserId) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!targetUserId || !uuidRegex.test(String(targetUserId).trim())) {
       return NextResponse.json(
         {
           error:
-            "Nenhum usuário informado para associar os leads. Copie a URL completa com ?user_id=... na aba Configurações do seu CRM ou configure a variável CRM_USER_ID na Vercel.",
+            "Nenhum user_id válido informado para associar os leads. Copie a URL completa com ?user_id=... na aba Configurações do seu CRM ou configure CRM_USER_ID na Vercel.",
         },
-        { status: 400 },
+        { status: 401 },
       );
     }
+    targetUserId = String(targetUserId).trim();
 
     const todayStr = new Date().toISOString().split("T")[0];
 

@@ -1,7 +1,13 @@
 import Papa from "papaparse";
 
 import { LEAD_STATUSES, SALE_STATUSES } from "@/lib/constants";
-import type { LeadStatus, ParsedLeadRow, SaleStatus } from "@/lib/types";
+import type {
+  EtapaEntrega,
+  LeadStatus,
+  ParsedLeadRow,
+  PresencaDigital,
+  SaleStatus,
+} from "@/lib/types";
 import { sanitizePhone } from "@/lib/whatsapp";
 
 export interface CsvParseResult {
@@ -13,6 +19,7 @@ export interface CsvParseResult {
 
 const normalize = (value: string) =>
   value
+    .replace(/^\uFEFF/, "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -44,7 +51,7 @@ export function parseDataValue(raw: string): string | null {
   const s = raw.trim();
   if (!s) return null;
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
 
   const m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
   if (!m) return null;
@@ -91,7 +98,7 @@ export function normalizeSale(raw: string): SaleStatus {
     "follow up": "Negociação",
     "em aberto": "Em aberto",
     "em negociacao": "Negociação",
-    "negociacao": "Negociação",
+    negociacao: "Negociação",
     "negociação": "Negociação",
   };
   if (k in map) return map[k];
@@ -99,6 +106,21 @@ export function normalizeSale(raw: string): SaleStatus {
     ? (raw as SaleStatus)
     : "Em aberto";
 }
+
+const VALID_PRESENCAS: PresencaDigital[] = [
+  "Sem Site",
+  "Site Lento/Antigo",
+  "Apenas Instagram",
+  "Site Moderno",
+];
+
+const VALID_ETAPAS: EtapaEntrega[] = [
+  "Briefing & Conteúdo",
+  "Design & Layout",
+  "Desenvolvimento",
+  "Revisão com Cliente",
+  "Site no Ar",
+];
 
 function extractContact(value: string): {
   whatsapp: string | null;
@@ -118,8 +140,7 @@ function extractContact(value: string): {
 /**
  * Faz o parsing de um CSV de leads.
  * - Ignora linhas de cabecalho/lixo ate encontrar a linha com "Nicho, Nome".
- * - Colunas suportadas: Nicho, Nome, Link do Perfil, Status de Prospeccao,
- *   Venda Realizada, Observacoes, Data, Msg a mandar, Valor da Venda.
+ * - Suporta tanto o modelo clássico quanto o backup completo com todos os campos.
  */
 export function parseLeadsCsv(text: string): CsvParseResult {
   const parsed = Papa.parse<string[]>(text, { skipEmptyLines: "greedy" });
@@ -151,13 +172,19 @@ export function parseLeadsCsv(text: string): CsvParseResult {
   const cols = {
     nicho: col("nicho"),
     nome: col("nome"),
+    whatsapp: col("whatsapp"),
     link: col("link do perfil"),
+    siteAtual: col("site atual"),
+    presenca: col("presenca digital"),
     status: col("status de prospeccao"),
     venda: col("venda realizada"),
+    etapa: col("etapa de entrega"),
     obs: col("observacoes"),
     data: col("data"),
+    proximoContato: col("proximo contato"),
     msg: col("msg a mandar"),
     valor: col("valor da venda"),
+    recorrente: col("valor recorrente"),
   };
 
   if (cols.nome === -1) {
@@ -182,21 +209,45 @@ export function parseLeadsCsv(text: string): CsvParseResult {
       continue;
     }
 
-    const { whatsapp, link_perfil } = extractContact(get(cols.link));
+    const explicitWhatsapp = sanitizePhone(get(cols.whatsapp));
+    const extracted = extractContact(get(cols.link));
+
+    const whatsapp = explicitWhatsapp || extracted.whatsapp;
+    const link_perfil = extracted.link_perfil;
+    const site_atual = get(cols.siteAtual) || null;
+    const rawPresenca = get(cols.presenca) as PresencaDigital;
+    const presenca_digital: PresencaDigital = VALID_PRESENCAS.includes(rawPresenca)
+      ? rawPresenca
+      : site_atual
+        ? "Site Lento/Antigo"
+        : "Sem Site";
+
+    const rawEtapa = get(cols.etapa) as EtapaEntrega;
+    const etapa_entrega: EtapaEntrega = VALID_ETAPAS.includes(rawEtapa)
+      ? rawEtapa
+      : "Briefing & Conteúdo";
+
     const valor = parseCurrency(get(cols.valor));
+    const valor_recorrente = parseCurrency(get(cols.recorrente));
     const data_contato = parseDataValue(get(cols.data));
+    const data_proximo_contato = parseDataValue(get(cols.proximoContato));
 
     out.push({
       nicho: get(cols.nicho) || null,
       nome,
       whatsapp,
       link_perfil,
+      site_atual,
+      presenca_digital,
       status_prospeccao: normalizeStatus(get(cols.status)),
       venda_realizada: normalizeSale(get(cols.venda)),
+      etapa_entrega,
       observacoes: get(cols.obs) || null,
       data_contato,
+      data_proximo_contato,
       msg_a_mandar: get(cols.msg) || null,
       valor_venda: valor,
+      valor_recorrente,
     });
   }
 

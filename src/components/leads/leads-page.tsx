@@ -58,9 +58,10 @@ import {
   updateLeadRecurringValue,
   updateLeadDigitalPresence,
   updateLeadDeliveryStage,
+  updateLeadNotes,
 } from "@/lib/actions/leads";
 import { fireCelebrationConfetti } from "@/lib/confetti";
-import { getFollowUpInfo } from "@/lib/follow-up";
+import { getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
 import type { ActionResult, EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -75,19 +76,16 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
 
-  const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+  const [viewingLeadId, setViewingLeadId] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalLeads(initialLeads);
   }, [initialLeads]);
 
-  // Sync viewingLead if localLeads update
-  useEffect(() => {
-    if (viewingLead) {
-      const updated = localLeads.find((l) => l.id === viewingLead.id);
-      if (updated) setViewingLead(updated);
-    }
-  }, [localLeads, viewingLead]);
+  const viewingLead = useMemo(
+    () => (viewingLeadId ? localLeads.find((l) => l.id === viewingLeadId) ?? null : null),
+    [localLeads, viewingLeadId],
+  );
 
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
@@ -219,22 +217,37 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
 
+    if (editingLead) {
+      const updatedLead = result.lead ?? ({ ...editingLead, ...values } as Lead);
+      setLocalLeads((ls) => ls.map((l) => (l.id === editingLead.id ? updatedLead : l)));
+    } else if (result.lead) {
+      setLocalLeads((ls) => [result.lead!, ...ls]);
+    } else {
+      router.refresh();
+    }
+
     toast.success(editingLead ? "Lead atualizado." : "Lead criado!");
     setDialogOpen(false);
     setEditingLead(null);
-    router.refresh();
   }
 
   async function handleDelete() {
     if (!deletingLead) return;
-    const result = await deleteLead(deletingLead.id);
+    const idToDelete = deletingLead.id;
+    const previousLeads = localLeads;
+
+    setLocalLeads((ls) => ls.filter((l) => l.id !== idToDelete));
+    setSelectedIds((ids) => ids.filter((x) => x !== idToDelete));
+    if (viewingLeadId === idToDelete) setViewingLeadId(null);
+    setDeletingLead(null);
+
+    const result = await deleteLead(idToDelete);
     if (!result.ok) {
+      setLocalLeads(previousLeads);
       toast.error(result.error);
       return;
     }
     toast.success("Lead excluído.");
-    setDeletingLead(null);
-    router.refresh();
   }
 
   async function handleStatusChange(id: string, nextStatus: LeadStatus) {
@@ -422,6 +435,73 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     }
     toast.success("Valores da proposta salvos no lead!");
   }
+
+  async function handleNotesChange(
+    id: string,
+    observacoes: string | null,
+    msg_a_mandar?: string | null,
+  ) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) =>
+        l.id === id
+          ? {
+              ...l,
+              observacoes,
+              ...(msg_a_mandar !== undefined ? { msg_a_mandar } : {}),
+            }
+          : l,
+      ),
+    );
+
+    const result = await updateLeadNotes(id, observacoes, msg_a_mandar);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                observacoes: previous.observacoes,
+                msg_a_mandar: previous.msg_a_mandar,
+              }
+            : l,
+        ),
+      );
+      toast.error(result.error || "Erro ao salvar anotações.");
+      return;
+    }
+    toast.success("Anotações atualizadas!");
+  }
+
+  async function handleWhatsAppSent(lead: Lead) {
+    const today = getQuickDate(0);
+    const shouldAdvanceStatus = lead.status_prospeccao === "Novo Lead";
+    const nextStatus: LeadStatus = shouldAdvanceStatus ? "Em Andamento" : lead.status_prospeccao;
+
+    setLocalLeads((ls) =>
+      ls.map((l) =>
+        l.id === lead.id
+          ? { ...l, data_contato: today, status_prospeccao: nextStatus }
+          : l,
+      ),
+    );
+
+    const tasks: Promise<ActionResult>[] = [updateLeadContactDate(lead.id, today)];
+    if (shouldAdvanceStatus) {
+      tasks.push(updateLeadStatus(lead.id, "Em Andamento"));
+    }
+
+    await Promise.all(tasks);
+    toast.success(
+      shouldAdvanceStatus
+        ? "Contato registrado hoje e status movido para 'Em Andamento'!"
+        : "Último contato atualizado para hoje!",
+    );
+  }
+
+  const filterKey = `${deferredSearch}|${nicho}|${status}|${venda}|${quickFilter}`;
 
   const hasFilters =
     search.trim() !== "" ||
@@ -725,14 +805,16 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       {view === "table" ? (
         <LeadsTable
           leads={filtered}
+          filterKey={filterKey}
           onEdit={openEdit}
           onDelete={setDeletingLead}
-          onSelectLead={(lead) => setViewingLead(lead)}
+          onSelectLead={(lead) => setViewingLeadId(lead.id)}
           onStatusChange={handleStatusChange}
           onSaleChange={handleSaleChange}
           onValueChange={handleValueChange}
           onNextContactChange={handleNextContactChange}
           onContactDateChange={handleContactDateChange}
+          onWhatsAppSent={handleWhatsAppSent}
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onSelectAll={handleSelectAll}
@@ -744,9 +826,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           leads={filtered}
           onEdit={openEdit}
           onStatusChange={handleStatusChange}
-          onSelectLead={(lead) => setViewingLead(lead)}
+          onSelectLead={(lead) => setViewingLeadId(lead.id)}
           onNextContactChange={handleNextContactChange}
           onContactDateChange={handleContactDateChange}
+          onWhatsAppSent={handleWhatsAppSent}
         />
       )}
 
@@ -754,7 +837,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       <LeadDetailSheet
         lead={viewingLead}
         open={viewingLead !== null}
-        onOpenChange={(open) => !open && setViewingLead(null)}
+        onOpenChange={(open) => !open && setViewingLeadId(null)}
         onEdit={openEdit}
         onStatusChange={handleStatusChange}
         onSaleChange={handleSaleChange}
@@ -763,15 +846,36 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         onPresenceChange={handlePresenceChange}
         onDeliveryStageChange={handleDeliveryStageChange}
         onApplyProposalValues={handleApplyProposalValues}
+        onNotesChange={handleNotesChange}
+        onWhatsAppSent={handleWhatsAppSent}
       />
 
       {/* Barra Flutuante de Ações em Massa */}
       <BatchActionsBar
         selectedIds={selectedIds}
         onClearSelection={() => setSelectedIds([])}
-        onSuccess={() => {
-          setSelectedIds([]);
-          router.refresh();
+        onBulkStatusUpdated={(ids, nextStatus) => {
+          const idSet = new Set(ids);
+          setLocalLeads((ls) =>
+            ls.map((l) => (idSet.has(l.id) ? { ...l, status_prospeccao: nextStatus } : l)),
+          );
+        }}
+        onBulkFollowUpUpdated={(ids, nextDate) => {
+          const idSet = new Set(ids);
+          setLocalLeads((ls) =>
+            ls.map((l) => (idSet.has(l.id) ? { ...l, data_proximo_contato: nextDate } : l)),
+          );
+        }}
+        onBulkContactDateUpdated={(ids, contactDate) => {
+          const idSet = new Set(ids);
+          setLocalLeads((ls) =>
+            ls.map((l) => (idSet.has(l.id) ? { ...l, data_contato: contactDate } : l)),
+          );
+        }}
+        onBulkDeleted={(ids) => {
+          const idSet = new Set(ids);
+          setLocalLeads((ls) => ls.filter((l) => !idSet.has(l.id)));
+          if (viewingLeadId && idSet.has(viewingLeadId)) setViewingLeadId(null);
         }}
       />
 

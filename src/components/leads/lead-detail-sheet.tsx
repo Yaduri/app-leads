@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Calendar,
   ExternalLink,
@@ -14,6 +15,7 @@ import {
   AlertCircle,
   Globe,
   CalendarCheck,
+  Save,
 } from "lucide-react";
 
 import {
@@ -24,6 +26,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { SaleBadge, StatusBadge } from "@/components/leads/status-badge";
 import { WhatsAppTemplateMenu } from "@/components/leads/whatsapp-template-menu";
 import { DigitalPresenceBadge } from "@/components/leads/digital-presence-badge";
@@ -53,6 +56,8 @@ interface LeadDetailSheetProps {
   onPresenceChange?: (id: string, presence: PresencaDigital) => void;
   onDeliveryStageChange?: (id: string, stage: EtapaEntrega) => void;
   onApplyProposalValues?: (id: string, setup: number, recurring: number) => void;
+  onNotesChange?: (id: string, observacoes: string | null, msg_a_mandar?: string | null) => void;
+  onWhatsAppSent?: (lead: Lead) => void;
 }
 
 export function LeadDetailSheet({
@@ -67,8 +72,29 @@ export function LeadDetailSheet({
   onPresenceChange,
   onDeliveryStageChange,
   onApplyProposalValues,
+  onNotesChange,
+  onWhatsAppSent,
 }: LeadDetailSheetProps) {
+  const [notesDraft, setNotesDraft] = useState("");
+  const [msgDraft, setMsgDraft] = useState("");
+
+  useEffect(() => {
+    if (lead) {
+      setNotesDraft(lead.observacoes ?? "");
+      setMsgDraft(lead.msg_a_mandar ?? "");
+    }
+  }, [lead?.id, lead?.observacoes, lead?.msg_a_mandar]);
+
   if (!lead) return null;
+
+  const isNotesDirty =
+    notesDraft.trim() !== (lead.observacoes ?? "").trim() ||
+    msgDraft.trim() !== (lead.msg_a_mandar ?? "").trim();
+
+  const handleSaveNotes = () => {
+    if (!onNotesChange) return;
+    onNotesChange(lead.id, notesDraft.trim() || null, msgDraft.trim() || null);
+  };
 
   const followUpInfo = getFollowUpInfo({
     data_proximo_contato: lead.data_proximo_contato,
@@ -157,6 +183,7 @@ export function LeadDetailSheet({
               defaultMessage={lead.msg_a_mandar}
               label="Conversar"
               compact={false}
+              onContactSent={() => onWhatsAppSent?.(lead)}
             />
           </div>
 
@@ -390,27 +417,69 @@ export function LeadDetailSheet({
           </div>
         </div>
 
-        {/* Mensagem Padrão Cadastrada */}
-        {lead.msg_a_mandar && (
-          <div className="rounded-2xl border border-border/70 bg-card/60 p-4 space-y-2">
+        {/* Anotações Rápidas & Mensagem Customizada (Edição Direta) */}
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 space-y-4">
+          <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <MessageCircle className="size-3.5 text-primary" />
-              Mensagem Pré-configurada
+              <Pencil className="size-3.5 text-primary" />
+              Anotações & Mensagem Rápida
             </span>
-            <p className="text-xs text-foreground/90 leading-relaxed bg-muted/40 p-3 rounded-xl border border-border/50">
-              {lead.msg_a_mandar}
-            </p>
+            {isNotesDirty && onNotesChange && (
+              <Button
+                size="sm"
+                onClick={handleSaveNotes}
+                className="h-7 px-2.5 text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 animate-in fade-in duration-150"
+              >
+                <Save className="size-3.5" />
+                Salvar notas
+              </Button>
+            )}
           </div>
-        )}
 
-        {/* Observações e Histórico */}
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-4 space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Anotações & Observações
-          </span>
-          <p className="text-xs text-foreground/80 leading-relaxed bg-muted/30 p-3 rounded-xl border border-border/40 whitespace-pre-wrap">
-            {lead.observacoes || "Nenhuma anotação registrada para este lead."}
-          </p>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Observações do Lead (diagnóstico, objeções, histórico)
+            </label>
+            <Textarea
+              rows={3}
+              value={notesDraft}
+              onChange={(e) => setNotesDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && isNotesDirty) {
+                  e.preventDefault();
+                  handleSaveNotes();
+                }
+              }}
+              placeholder="Digite anotações sobre o site do cliente, conversa ou próximos passos..."
+              className="text-xs bg-background/50 border-border/70 resize-y"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <MessageCircle className="size-3 text-emerald-400" />
+              Mensagem Personalizada de Abordagem
+            </label>
+            <Textarea
+              rows={2}
+              value={msgDraft}
+              onChange={(e) => setMsgDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && isNotesDirty) {
+                  e.preventDefault();
+                  handleSaveNotes();
+                }
+              }}
+              placeholder="Mensagem específica para enviar no WhatsApp deste lead..."
+              className="text-xs bg-background/50 border-border/70 resize-y"
+            />
+          </div>
+
+          {isNotesDirty && (
+            <p className="text-[11px] text-muted-foreground">
+              Dica: Pressione <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">Ctrl + Enter</kbd> ou clique em <strong>Salvar notas</strong>.
+            </p>
+          )}
         </div>
       </SheetContent>
     </Sheet>

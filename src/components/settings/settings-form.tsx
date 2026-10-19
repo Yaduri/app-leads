@@ -27,22 +27,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteAllLeads, updateUsername } from "@/lib/actions/settings";
-import type { Lead } from "@/lib/types";
+import { deleteAllLeads, getLeadsForExport, updateUsername } from "@/lib/actions/settings";
 
 export function SettingsForm({
   userId,
   userEmail,
   initialUsername,
-  leads,
+  leadsCount,
 }: {
   userId?: string;
   userEmail: string;
   initialUsername: string;
-  leads: Lead[];
+  leadsCount: number;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [localCount, setLocalCount] = useState(leadsCount);
   const [userName, setUserName] = useState(initialUsername);
   const [savingName, setSavingName] = useState(false);
 
@@ -83,29 +84,50 @@ export function SettingsForm({
     }
   }
 
-  function handleExport() {
-    if (leads.length === 0) {
+  async function handleExport() {
+    if (localCount === 0) {
       toast.error("Você não tem nenhum lead para exportar.");
       return;
     }
 
+    setExporting(true);
     try {
+      const res = await getLeadsForExport();
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+
+      const leads = res.leads;
+      if (leads.length === 0) {
+        toast.error("Você não tem nenhum lead para exportar.");
+        return;
+      }
+
       const csvData = leads.map((l) => ({
         Nicho: l.nicho ?? "",
         Nome: l.nome ?? "",
+        WhatsApp: l.whatsapp ?? "",
         "Link do Perfil": l.link_perfil || l.whatsapp || "",
+        "Site Atual": l.site_atual ?? "",
+        "Presença Digital": l.presenca_digital ?? "Sem Site",
         "Status de Prospecção": l.status_prospeccao ?? "",
         "Venda Realizada": l.venda_realizada ?? "",
-        "Observações": l.observacoes ?? "",
+        "Etapa de Entrega": l.etapa_entrega ?? "Briefing & Conteúdo",
+        Observações: l.observacoes ?? "",
         Data: l.data_contato ?? "",
+        "Próximo Contato": l.data_proximo_contato ?? "",
         "Msg a mandar": l.msg_a_mandar ?? "",
         "Valor da Venda": l.valor_venda
-          ? `R$ ${l.valor_venda.toFixed(2).replace(".", ",")}`
+          ? `R$ ${Number(l.valor_venda).toFixed(2).replace(".", ",")}`
+          : "R$ 0,00",
+        "Valor Recorrente": l.valor_recorrente
+          ? `R$ ${Number(l.valor_recorrente).toFixed(2).replace(".", ",")}`
           : "R$ 0,00",
       }));
 
       const csv = Papa.unparse(csvData);
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
@@ -114,11 +136,13 @@ export function SettingsForm({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      toast.success("Backup exportado com sucesso!");
+
+      toast.success("Backup completo exportado com sucesso!");
     } catch (err) {
       console.error(err);
       toast.error("Erro ao exportar o backup de leads.");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -130,6 +154,7 @@ export function SettingsForm({
         toast.error(result.error);
         return;
       }
+      setLocalCount(0);
       toast.success("Todos os leads foram deletados.");
       router.refresh();
     } catch (err) {
@@ -294,9 +319,9 @@ print(response.json())`}
           <p className="text-sm text-muted-foreground">
             O arquivo gerado é 100% compatível com o nosso importador de planilhas. Você pode usar este backup para transferir seus leads ou restaurar dados posteriormente.
           </p>
-          <Button onClick={handleExport} className="w-full sm:w-auto gap-2">
-            <Download className="size-4" />
-            Exportar {leads.length} Leads para CSV
+          <Button onClick={handleExport} disabled={exporting || localCount === 0} className="w-full sm:w-auto gap-2">
+            {exporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+            {exporting ? "Gerando arquivo CSV..." : `Exportar ${localCount} Leads para CSV`}
           </Button>
         </CardContent>
       </Card>
@@ -322,7 +347,7 @@ print(response.json())`}
 
           <AlertDialog>
             <AlertDialogTrigger render={
-              <Button variant="destructive" className="w-full sm:w-auto gap-2">
+              <Button variant="destructive" disabled={localCount === 0} className="w-full sm:w-auto gap-2">
                 <Trash2 className="size-4" />
                 Apagar todos os leads
               </Button>
@@ -334,7 +359,7 @@ print(response.json())`}
                 </div>
                 <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta ação excluirá permanentemente todos os <strong>{leads.length} leads</strong> cadastrados. Você não poderá recuperar estes dados depois de confirmar.
+                  Esta ação excluirá permanentemente todos os <strong>{localCount} leads</strong> cadastrados. Você não poderá recuperar estes dados depois de confirmar.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
