@@ -17,6 +17,7 @@ import {
   Calendar,
   CheckCircle2,
   Sparkles,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,16 +60,18 @@ import {
   updateLeadDigitalPresence,
   updateLeadDeliveryStage,
   updateLeadNotes,
+  updateLeadPaymentStatus,
+  updateLeadDueDay,
 } from "@/lib/actions/leads";
 import { fireCelebrationConfetti } from "@/lib/confetti";
 import { getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
 import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
-import type { ActionResult, EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
+import type { ActionResult, EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus, StatusPagamento } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "table" | "kanban";
 type SelectValueOpt = string;
-type QuickFilterType = "all" | "hoje" | "atrasados" | "negociacao" | "producao" | "vendas";
+type QuickFilterType = "all" | "hoje" | "atrasados" | "negociacao" | "producao" | "vendas" | "mensalidades";
 
 export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   const router = useRouter();
@@ -111,12 +114,14 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     let negociacao = 0;
     let producao = 0;
     let vendas = 0;
+    let mensalidades = 0;
 
     for (const lead of localLeads) {
       const follow = getFollowUpInfo(lead);
       if (follow.isToday) hoje++;
       if (follow.isOverdue) atrasados++;
       if (lead.status_prospeccao === "Em Negociação") negociacao++;
+      if (lead.valor_recorrente && lead.valor_recorrente > 0) mensalidades++;
       if (lead.venda_realizada === "Sim") {
         vendas++;
         if (lead.etapa_entrega !== "Site no Ar") producao++;
@@ -130,6 +135,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       negociacao,
       producao,
       vendas,
+      mensalidades,
     };
   }, [localLeads]);
 
@@ -146,6 +152,9 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         if (!isProducao) return false;
       }
       if (quickFilter === "vendas" && lead.venda_realizada !== "Sim") {
+        return false;
+      }
+      if (quickFilter === "mensalidades" && (!lead.valor_recorrente || lead.valor_recorrente <= 0)) {
         return false;
       }
       if (quickFilter === "hoje") {
@@ -203,6 +212,21 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     setEditingLead(lead);
     setDialogOpen(true);
   }, []);
+
+  useEffect(() => {
+    const handleNewLeadEvent = () => openNew();
+    window.addEventListener("crm:new-lead", handleNewLeadEvent);
+
+    const params = new URLSearchParams(window.location.search);
+    const filterParam = params.get("filter") as QuickFilterType | null;
+    if (filterParam) setQuickFilter(filterParam);
+    if (params.get("new") === "1") {
+      openNew();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    return () => window.removeEventListener("crm:new-lead", handleNewLeadEvent);
+  }, [openNew]);
 
   async function handleSave(values: LeadFormValues) {
     let result: ActionResult;
@@ -434,6 +458,48 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       return;
     }
     toast.success("Valores da proposta salvos no lead!");
+  }
+
+  async function handlePaymentStatusChange(id: string, newStatus: StatusPagamento) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, status_pagamento: newStatus } : l)),
+    );
+
+    const result = await updateLeadPaymentStatus(id, newStatus);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, status_pagamento: previous.status_pagamento } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success(`Status de pagamento: ${newStatus}`);
+  }
+
+  async function handleDueDayChange(id: string, dueDay: number) {
+    const previous = localLeads.find((l) => l.id === id);
+    if (!previous) return;
+
+    setLocalLeads((ls) =>
+      ls.map((l) => (l.id === id ? { ...l, dia_vencimento: dueDay } : l)),
+    );
+
+    const result = await updateLeadDueDay(id, dueDay);
+    if (!result.ok) {
+      setLocalLeads((ls) =>
+        ls.map((l) =>
+          l.id === id ? { ...l, dia_vencimento: previous.dia_vencimento } : l,
+        ),
+      );
+      toast.error(result.error);
+      return;
+    }
+    toast.success(`Vencimento definido para dia ${dueDay}`);
   }
 
   async function handleNotesChange(
@@ -707,6 +773,32 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
             </span>
           )}
         </button>
+
+        <button
+          type="button"
+          onClick={() => setQuickFilter("mensalidades")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 border",
+            quickFilter === "mensalidades"
+              ? "bg-sky-600 text-white border-sky-700 shadow-sm"
+              : "bg-card/50 text-muted-foreground border-border/70 hover:text-sky-400 hover:bg-card",
+          )}
+        >
+          <CreditCard className="size-3.5 text-sky-400" />
+          <span>Mensalidades & MRR</span>
+          {smartCounts.mensalidades > 0 && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-semibold font-mono leading-none",
+                quickFilter === "mensalidades"
+                  ? "bg-white/25 text-white"
+                  : "bg-sky-500/15 text-sky-400 font-bold",
+              )}
+            >
+              {smartCounts.mensalidades}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Filter Bar & View Mode Switcher */}
@@ -841,6 +933,8 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         onEdit={openEdit}
         onStatusChange={handleStatusChange}
         onSaleChange={handleSaleChange}
+        onPaymentStatusChange={handlePaymentStatusChange}
+        onDueDayChange={handleDueDayChange}
         onNextContactChange={handleNextContactChange}
         onContactDateChange={handleContactDateChange}
         onPresenceChange={handlePresenceChange}
@@ -883,6 +977,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         lead={editingLead}
+        existingLeads={localLeads}
         onSubmit={handleSave}
       />
 

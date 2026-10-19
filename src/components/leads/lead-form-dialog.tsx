@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarCheck, Loader2 } from "lucide-react";
+import { AlertTriangle, CalendarCheck, CreditCard, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getQuickDate } from "@/lib/follow-up";
-import { LEAD_STATUSES, NICHOS, SALE_STATUSES } from "@/lib/constants";
-import type { EtapaEntrega, Lead, LeadInsert, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
+import { LEAD_STATUSES, NICHOS, SALE_STATUSES, STATUS_PAGAMENTO_OPTIONS } from "@/lib/constants";
+import type { EtapaEntrega, Lead, LeadInsert, LeadStatus, PresencaDigital, SaleStatus, StatusPagamento } from "@/lib/types";
 
 const PRESENCA_OPTIONS: PresencaDigital[] = [
   "Sem Site",
@@ -49,11 +49,13 @@ export function LeadFormDialog({
   open,
   onOpenChange,
   lead,
+  existingLeads = [],
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead: Lead | null;
+  existingLeads?: Lead[];
   onSubmit: (values: LeadFormValues) => Promise<void>;
 }) {
   const isEditing = Boolean(lead);
@@ -67,6 +69,8 @@ export function LeadFormDialog({
   const [status, setStatus] = useState<LeadStatus>("Novo Lead");
   const [venda, setVenda] = useState<SaleStatus>("Em aberto");
   const [etapaEntrega, setEtapaEntrega] = useState<EtapaEntrega>("Briefing & Conteúdo");
+  const [statusPagamento, setStatusPagamento] = useState<StatusPagamento>("Em Aberto");
+  const [diaVencimento, setDiaVencimento] = useState("10");
   const [dataContato, setDataContato] = useState("");
   const [dataProximoContato, setDataProximoContato] = useState("");
   const [valor, setValor] = useState("0");
@@ -74,6 +78,14 @@ export function LeadFormDialog({
   const [observacoes, setObservacoes] = useState("");
   const [msg, setMsg] = useState("");
   const [pending, setPending] = useState(false);
+
+  const duplicateLead = existingLeads.find((l) => {
+    if (isEditing && l.id === lead?.id) return false;
+    const cleanCurrent = whatsapp.replace(/\D/g, "");
+    const cleanOther = (l.whatsapp ?? "").replace(/\D/g, "");
+    if (cleanCurrent.length < 8 || cleanOther.length < 8) return false;
+    return cleanCurrent.endsWith(cleanOther.slice(-8)) || cleanOther.endsWith(cleanCurrent.slice(-8));
+  });
 
   useEffect(() => {
     if (open) {
@@ -92,6 +104,8 @@ export function LeadFormDialog({
       setStatus(lead?.status_prospeccao ?? "Novo Lead");
       setVenda(lead?.venda_realizada ?? "Em aberto");
       setEtapaEntrega(lead?.etapa_entrega ?? "Briefing & Conteúdo");
+      setStatusPagamento(lead?.status_pagamento ?? "Em Aberto");
+      setDiaVencimento(lead?.dia_vencimento ? String(lead.dia_vencimento) : "10");
       setDataContato(lead?.data_contato ?? todayLocal);
       setDataProximoContato(lead?.data_proximo_contato ? lead.data_proximo_contato.slice(0, 10) : "");
       setValor(lead ? String(lead.valor_venda) : "0");
@@ -124,6 +138,9 @@ export function LeadFormDialog({
           ) * 100,
         ) / 100;
 
+    const parsedDia = parseInt(diaVencimento, 10);
+    const validDia = !isNaN(parsedDia) && parsedDia >= 1 && parsedDia <= 31 ? parsedDia : 10;
+
     setPending(true);
     try {
       await onSubmit({
@@ -136,6 +153,8 @@ export function LeadFormDialog({
         status_prospeccao: status,
         venda_realizada: venda,
         etapa_entrega: etapaEntrega,
+        status_pagamento: statusPagamento,
+        dia_vencimento: validDia,
         data_contato: dataContato || null,
         data_proximo_contato: dataProximoContato || null,
         msg_a_mandar: msg.trim() || null,
@@ -197,7 +216,16 @@ export function LeadFormDialog({
                 onChange={(e) => setWhatsapp(e.target.value)}
                 placeholder="11998765432"
                 inputMode="tel"
+                className={duplicateLead ? "border-amber-500 focus-visible:ring-amber-500" : ""}
               />
+              {duplicateLead && (
+                <div className="flex items-start gap-1.5 p-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300">
+                  <AlertTriangle className="size-3.5 shrink-0 mt-0.5 text-amber-400" />
+                  <span>
+                    Atenção: Número já cadastrado em <strong>{duplicateLead.nome}</strong> ({duplicateLead.status_prospeccao})
+                  </span>
+                </div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="link_perfil">Link do perfil</Label>
@@ -390,6 +418,44 @@ export function LeadFormDialog({
                 onChange={(e) => setValorRecorrente(e.target.value)}
                 placeholder="0.00"
                 inputMode="decimal"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 p-3 rounded-xl bg-muted/40 border border-border/70">
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-1.5 text-xs font-semibold">
+                <CreditCard className="size-3.5 text-emerald-400" />
+                Status do Pagamento
+              </Label>
+              <Select
+                value={statusPagamento}
+                onValueChange={(v) => setStatusPagamento(v as StatusPagamento)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_PAGAMENTO_OPTIONS.map((st) => (
+                    <SelectItem key={st} value={st}>
+                      {st}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="dia_vencimento" className="text-xs font-semibold">
+                Dia de Vencimento (1 a 31)
+              </Label>
+              <Input
+                id="dia_vencimento"
+                type="number"
+                min={1}
+                max={31}
+                value={diaVencimento}
+                onChange={(e) => setDiaVencimento(e.target.value)}
+                placeholder="Ex: 10"
               />
             </div>
           </div>

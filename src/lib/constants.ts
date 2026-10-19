@@ -35,3 +35,21 @@ export const SALE_STATUS_CLASSES: Record<SaleStatus, string> = {
   "Negociação": "bg-orange-500/15 text-orange-400 border-orange-500/30",
   "Em aberto": "bg-slate-500/10 text-slate-400 border-slate-500/20",
 };
+
+export const STATUS_PAGAMENTO_OPTIONS = [
+  "Aguardando Entrada (50%)",
+  "50% Pago (Em Produção)",
+  "100% Quitado",
+  "Em Aberto",
+  "Mensalidade Pendente",
+  "Mensalidade em Dia",
+] as const;
+
+export const STATUS_PAGAMENTO_CLASSES: Record<string, string> = {
+  "100% Quitado": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  "Mensalidade em Dia": "bg-teal-500/15 text-teal-300 border-teal-500/30",
+  "50% Pago (Em Produção)": "bg-blue-500/15 text-blue-300 border-blue-500/30",
+  "Aguardando Entrada (50%)": "bg-amber-500/15 text-amber-300 border-amber-500/30",
+  "Mensalidade Pendente": "bg-rose-500/15 text-rose-300 border-rose-500/30",
+  "Em Aberto": "bg-slate-500/15 text-slate-400 border-slate-500/25",
+};

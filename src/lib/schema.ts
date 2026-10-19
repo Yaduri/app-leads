@@ -22,6 +22,8 @@ export interface Database {
           etapa_entrega: string | null;
           msg_a_mandar: string | null;
           valor_venda: number;
+          status_pagamento: string | null;
+          dia_vencimento: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -43,6 +45,8 @@ export interface Database {
           etapa_entrega?: string | null;
           msg_a_mandar?: string | null;
           valor_venda?: number;
+          status_pagamento?: string | null;
+          dia_vencimento?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -64,6 +68,8 @@ export interface Database {
           etapa_entrega?: string | null;
           msg_a_mandar?: string | null;
           valor_venda?: number;
+          status_pagamento?: string | null;
+          dia_vencimento?: number | null;
           created_at?: string;
           updated_at?: string;
         };

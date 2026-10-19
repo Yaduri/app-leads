@@ -20,6 +20,14 @@ export type EtapaEntrega =
   | "Revisão com Cliente"
   | "Site no Ar";
 
+export type StatusPagamento =
+  | "Aguardando Entrada (50%)"
+  | "50% Pago (Em Produção)"
+  | "100% Quitado"
+  | "Em Aberto"
+  | "Mensalidade Pendente"
+  | "Mensalidade em Dia";
+
 export type ActionResult = { ok: boolean; error?: string; lead?: Lead };
 
 export interface Lead {
@@ -34,6 +42,8 @@ export interface Lead {
   status_prospeccao: LeadStatus;
   venda_realizada: SaleStatus;
   etapa_entrega?: EtapaEntrega | null;
+  status_pagamento?: StatusPagamento | null;
+  dia_vencimento?: number | null;
   observacoes: string | null;
   data_contato: string | null;
   data_proximo_contato?: string | null;
@@ -55,6 +65,8 @@ export interface LeadInsert {
   status_prospeccao?: LeadStatus;
   venda_realizada?: SaleStatus;
   etapa_entrega?: EtapaEntrega | null;
+  status_pagamento?: StatusPagamento | null;
+  dia_vencimento?: number | null;
   observacoes?: string | null;
   data_contato?: string | null;
   data_proximo_contato?: string | null;
@@ -73,6 +85,8 @@ export interface ParsedLeadRow {
   status_prospeccao: LeadStatus;
   venda_realizada: SaleStatus;
   etapa_entrega?: EtapaEntrega | null;
+  status_pagamento?: StatusPagamento | null;
+  dia_vencimento?: number | null;
   observacoes: string | null;
   data_contato: string | null;
   data_proximo_contato?: string | null;

@@ -12,11 +12,13 @@ import {
   Settings,
   Target,
   Upload,
+  Search,
 } from "lucide-react";
 
 import { logoutAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { CommandMenu } from "@/components/layout/command-menu";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -78,6 +80,7 @@ export function AppShell({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -85,6 +88,36 @@ export function AppShell({
     if (stored === "true") {
       setCollapsed(true);
     }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K / Cmd+K
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandOpen((prev) => !prev);
+        return;
+      }
+
+      // 'N' to open new lead (only when not typing in an input)
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable);
+
+      if (!isInput && (e.key === "n" || e.key === "N") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        if (window.location.pathname === "/leads") {
+          window.dispatchEvent(new CustomEvent("crm:new-lead"));
+        } else {
+          window.location.href = "/leads?new=1";
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const toggleCollapsed = () => {
@@ -104,7 +137,7 @@ export function AppShell({
           collapsed ? "w-[72px] p-3" : "w-64 p-5",
         )}
       >
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
           {/* Topo do menu: Logo + Botão Minimizar/Expandir */}
           <div className={cn("flex items-center", collapsed ? "flex-col gap-3 justify-center" : "justify-between")}>
             <Logo name={userName} collapsed={collapsed} />
@@ -125,6 +158,27 @@ export function AppShell({
               </span>
             </Button>
           </div>
+
+          {/* Botão de Busca Rápida (Ctrl+K) */}
+          <button
+            type="button"
+            onClick={() => setCommandOpen(true)}
+            className={cn(
+              "flex items-center gap-2 rounded-xl border border-border/70 bg-card/60 px-3 py-2 text-xs text-muted-foreground transition-all hover:border-primary/50 hover:bg-muted/50 hover:text-foreground shadow-sm cursor-pointer",
+              collapsed ? "justify-center px-0 size-10 mx-auto" : "w-full justify-between",
+            )}
+            title="Busca e Comandos (Ctrl+K)"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="size-3.5 text-primary shrink-0" />
+              {!collapsed && <span>Buscar ou Ação...</span>}
+            </div>
+            {!collapsed && (
+              <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                Ctrl+K
+              </kbd>
+            )}
+          </button>
 
           <nav className="flex flex-col gap-1.5">
             {!collapsed && (
@@ -167,6 +221,15 @@ export function AppShell({
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/70 bg-background/80 backdrop-blur-lg px-4 py-3 md:hidden">
         <Logo name={userName} />
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommandOpen(true)}
+            className="size-8 text-muted-foreground hover:text-foreground"
+            title="Busca e Comandos (Ctrl+K)"
+          >
+            <Search className="size-4" />
+          </Button>
           <ThemeToggle compact />
           <LogoutButton compact />
         </div>
@@ -174,6 +237,9 @@ export function AppShell({
 
       {/* Conteúdo Principal */}
       <main className="min-w-0 flex-1 p-4 pb-28 md:p-8 md:pb-8 transition-all">{children}</main>
+
+      {/* Modal de Comandos / Busca Rápida Global */}
+      <CommandMenu open={commandOpen} onOpenChange={setCommandOpen} />
 
       {/* Floating Bottom Navigation Bar (Mobile) */}
       <nav className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-around border-t border-border/80 bg-card/90 backdrop-blur-xl px-2 py-2 md:hidden shadow-lg shadow-black/20">

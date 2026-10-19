@@ -10,6 +10,7 @@ import type {
   LeadStatus,
   PresencaDigital,
   SaleStatus,
+  StatusPagamento,
 } from "@/lib/types";
 
 export type ActionResult =
@@ -240,6 +241,45 @@ export async function updateLeadDeliveryStage(
   if (error) return { ok: false, error: mapError(error) };
 
   revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateLeadPaymentStatus(
+  id: string,
+  statusPagamento: StatusPagamento,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ status_pagamento: statusPagamento })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateLeadDueDay(
+  id: string,
+  dueDay: number,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const userId = await getUserId(supabase);
+  if (!userId) return { ok: false, error: "Sessão expirada. Entre novamente." };
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ dia_vencimento: dueDay })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) return { ok: false, error: mapError(error) };
+
   return { ok: true };
 }
 

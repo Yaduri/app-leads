@@ -39,6 +39,9 @@ export interface UrgentLeadItem {
   msg_a_mandar: string | null;
   urgency: FollowUpUrgency;
   label: string;
+  valor_venda?: number;
+  valor_recorrente?: number;
+  dia_vencimento?: number | null;
 }
 
 export function DailyActions({
@@ -183,6 +186,8 @@ export function DailyActions({
                         phone={lead.whatsapp}
                         name={lead.nome}
                         nicho={lead.nicho}
+                        valor={lead.valor_recorrente || lead.valor_venda}
+                        dia={lead.dia_vencimento}
                         defaultMessage={lead.msg_a_mandar}
                         compact
                         onContactSent={() => handleContactDone(lead)}

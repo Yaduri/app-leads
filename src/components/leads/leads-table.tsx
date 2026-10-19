@@ -432,6 +432,8 @@ export function LeadsTable({
                   phone={lead.whatsapp}
                   name={lead.nome}
                   nicho={lead.nicho}
+                  valor={lead.valor_recorrente || lead.valor_venda}
+                  dia={lead.dia_vencimento}
                   defaultMessage={lead.msg_a_mandar}
                   label="WhatsApp"
                   compact={false}
@@ -509,6 +511,8 @@ export function LeadsTable({
                         phone={lead.whatsapp}
                         name={lead.nome}
                         nicho={lead.nicho}
+                        valor={lead.valor_recorrente || lead.valor_venda}
+                        dia={lead.dia_vencimento}
                         defaultMessage={lead.msg_a_mandar}
                         compact
                         onContactSent={() => onWhatsAppSent?.(lead)}

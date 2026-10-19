@@ -18,6 +18,11 @@ import { Input } from "@/components/ui/input";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  getCustomPricing,
+  type ProjectPricing,
+  type AddonPricing,
+} from "@/lib/pricing-settings";
 
 interface SiteProposalGeneratorProps {
   clientName: string;
@@ -27,80 +32,6 @@ interface SiteProposalGeneratorProps {
   currentRecurring?: number;
   onApplyValues?: (setup: number, recurring: number) => void;
 }
-
-interface ProjectType {
-  id: string;
-  name: string;
-  description: string;
-  defaultPrice: number;
-}
-
-const PROJECT_TYPES: ProjectType[] = [
-  {
-    id: "landing",
-    name: "Landing Page de Alta Conversão",
-    description: "Página única focada em gerar contatos e orçamentos no WhatsApp",
-    defaultPrice: 1500,
-  },
-  {
-    id: "institucional",
-    name: "Site Institucional (3 a 5 páginas)",
-    description: "Apresentação completa: Início, Sobre, Serviços, Galeria e Contato",
-    defaultPrice: 2800,
-  },
-  {
-    id: "ecommerce",
-    name: "Loja Virtual / Catálogo",
-    description: "Vitrine de produtos com carrinho e fechamento direto no WhatsApp/Pix",
-    defaultPrice: 4200,
-  },
-  {
-    id: "vendas",
-    name: "Página de Vendas / Lançamento",
-    description: "Copy persuasiva, vídeo de vendas, depoimentos e integração de checkout",
-    defaultPrice: 1900,
-  },
-];
-
-interface AddonOption {
-  id: string;
-  name: string;
-  setupPrice: number;
-  recurringPrice: number;
-}
-
-const ADDON_OPTIONS: AddonOption[] = [
-  {
-    id: "hospedagem",
-    name: "Hospedagem Cloud Rápida + SSL Grátis",
-    setupPrice: 0,
-    recurringPrice: 150,
-  },
-  {
-    id: "seo",
-    name: "Otimização SEO Local no Google",
-    setupPrice: 400,
-    recurringPrice: 0,
-  },
-  {
-    id: "pixel",
-    name: "Integração WhatsApp Flutuante & Pixel Meta/Ads",
-    setupPrice: 250,
-    recurringPrice: 0,
-  },
-  {
-    id: "blog",
-    name: "Blog de Artigos Integrado",
-    setupPrice: 600,
-    recurringPrice: 0,
-  },
-  {
-    id: "suporte",
-    name: "Manutenção & Atualizações Mensais",
-    setupPrice: 0,
-    recurringPrice: 120,
-  },
-];
 
 export function SiteProposalGenerator({
   clientName,
@@ -112,6 +43,10 @@ export function SiteProposalGenerator({
 }: SiteProposalGeneratorProps) {
   const firstName = clientName.trim().split(" ")[0] || "Olá";
 
+  const [pricing] = useState(() => getCustomPricing());
+  const projectTypes = pricing.projects;
+  const addonOptions = pricing.addons;
+
   const [selectedType, setSelectedType] = useState<string>("landing");
   const [selectedAddons, setSelectedAddons] = useState<string[]>(["hospedagem", "pixel"]);
   const [deadline, setDeadline] = useState<string>("5 a 10 dias úteis");
@@ -119,25 +54,25 @@ export function SiteProposalGenerator({
   const [customRecurring, setCustomRecurring] = useState<number | null>(null);
 
   // Calcula valores sugeridos
-  const baseType = PROJECT_TYPES.find((t) => t.id === selectedType) || PROJECT_TYPES[0];
+  const baseType = projectTypes.find((t) => t.id === selectedType) || projectTypes[0];
 
   const suggestedSetup = useMemo(() => {
     let total = baseType.defaultPrice;
     for (const addonId of selectedAddons) {
-      const addon = ADDON_OPTIONS.find((a) => a.id === addonId);
+      const addon = addonOptions.find((a) => a.id === addonId);
       if (addon) total += addon.setupPrice;
     }
     return total;
-  }, [baseType, selectedAddons]);
+  }, [baseType, selectedAddons, addonOptions]);
 
   const suggestedRecurring = useMemo(() => {
     let total = 0;
     for (const addonId of selectedAddons) {
-      const addon = ADDON_OPTIONS.find((a) => a.id === addonId);
+      const addon = addonOptions.find((a) => a.id === addonId);
       if (addon) total += addon.recurringPrice;
     }
     return total;
-  }, [selectedAddons]);
+  }, [selectedAddons, addonOptions]);
 
   const finalSetup = customPrice !== null ? customPrice : suggestedSetup;
   const finalRecurring = customRecurring !== null ? customRecurring : suggestedRecurring;
@@ -152,7 +87,7 @@ export function SiteProposalGenerator({
   const proposalMessage = useMemo(() => {
     const nichoLine = nicho ? ` para o segmento de *${nicho}*` : "";
     const addonsList = selectedAddons
-      .map((id) => ADDON_OPTIONS.find((a) => a.id === id)?.name)
+      .map((id) => addonOptions.find((a) => a.id === id)?.name)
       .filter(Boolean)
       .map((name) => `• ${name}`)
       .join("\n");
@@ -225,7 +160,7 @@ export function SiteProposalGenerator({
           1. Tipo de Projeto
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {PROJECT_TYPES.map((type) => {
+          {projectTypes.map((type) => {
             const isSelected = selectedType === type.id;
             return (
               <button
@@ -265,7 +200,7 @@ export function SiteProposalGenerator({
           2. Opcionais & Hospedagem
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-          {ADDON_OPTIONS.map((addon) => {
+          {addonOptions.map((addon) => {
             const isChecked = selectedAddons.includes(addon.id);
             return (
               <button

@@ -34,6 +34,8 @@ alter table public.leads add column if not exists site_atual text;
 alter table public.leads add column if not exists presenca_digital text default 'Sem Site';
 alter table public.leads add column if not exists valor_recorrente numeric(10, 2) not null default 0.00;
 alter table public.leads add column if not exists etapa_entrega text default 'Briefing & Conteúdo';
+alter table public.leads add column if not exists status_pagamento text default 'Em Aberto';
+alter table public.leads add column if not exists dia_vencimento integer default 10;
 
 -- =============================================================
 -- Row Level Security (cada usuario ve/apenas seus registros)

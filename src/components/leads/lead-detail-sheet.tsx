@@ -16,6 +16,7 @@ import {
   Globe,
   CalendarCheck,
   Save,
+  CreditCard,
 } from "lucide-react";
 
 import {
@@ -39,10 +40,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LEAD_STATUSES, SALE_STATUSES } from "@/lib/constants";
+import { LEAD_STATUSES, SALE_STATUSES, STATUS_PAGAMENTO_OPTIONS, STATUS_PAGAMENTO_CLASSES } from "@/lib/constants";
 import { formatCurrency, formatDateBR } from "@/lib/format";
 import { formatSimpleDate, getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
-import type { EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import type { EtapaEntrega, Lead, LeadStatus, PresencaDigital, SaleStatus, StatusPagamento } from "@/lib/types";
 
 interface LeadDetailSheetProps {
   lead: Lead | null;
@@ -51,6 +53,8 @@ interface LeadDetailSheetProps {
   onEdit: (lead: Lead) => void;
   onStatusChange: (id: string, status: LeadStatus) => void;
   onSaleChange?: (id: string, sale: SaleStatus) => void;
+  onPaymentStatusChange?: (id: string, status: StatusPagamento) => void;
+  onDueDayChange?: (id: string, dueDay: number) => void;
   onNextContactChange?: (id: string, nextDate: string | null) => void;
   onContactDateChange?: (id: string, nextDate: string) => void;
   onPresenceChange?: (id: string, presence: PresencaDigital) => void;
@@ -67,6 +71,8 @@ export function LeadDetailSheet({
   onEdit,
   onStatusChange,
   onSaleChange,
+  onPaymentStatusChange,
+  onDueDayChange,
   onNextContactChange,
   onContactDateChange,
   onPresenceChange,
@@ -180,6 +186,8 @@ export function LeadDetailSheet({
               phone={lead.whatsapp}
               name={lead.nome}
               nicho={lead.nicho}
+              valor={lead.valor_recorrente || lead.valor_venda}
+              dia={lead.dia_vencimento}
               defaultMessage={lead.msg_a_mandar}
               label="Conversar"
               compact={false}
@@ -309,6 +317,64 @@ export function LeadDetailSheet({
                     <CalendarCheck className="size-3" />
                   </Button>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Controle de Pagamento & MRR */}
+          <div className="pt-3 border-t border-border/50 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <CreditCard className="size-3.5 text-emerald-400" />
+                Controle de Pagamentos & MRR
+              </span>
+              {lead.status_pagamento && (
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                    STATUS_PAGAMENTO_CLASSES[lead.status_pagamento] || "bg-muted text-muted-foreground border-border",
+                  )}
+                >
+                  {lead.status_pagamento}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[11px] text-muted-foreground">Status do Pagamento</label>
+                <Select
+                  value={lead.status_pagamento || "Em Aberto"}
+                  onValueChange={(val) => onPaymentStatusChange && onPaymentStatusChange(lead.id, val as StatusPagamento)}
+                >
+                  <SelectTrigger className="h-8 text-xs bg-background/50 border-border/70">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_PAGAMENTO_OPTIONS.map((st) => (
+                      <SelectItem key={st} value={st}>
+                        {st}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] text-muted-foreground">Dia de Vencimento</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={lead.dia_vencimento || 10}
+                  onChange={(e) => {
+                    const d = parseInt(e.target.value, 10);
+                    if (!isNaN(d) && d >= 1 && d <= 31 && onDueDayChange) {
+                      onDueDayChange(lead.id, d);
+                    }
+                  }}
+                  className="h-8 w-full rounded-md border border-border/70 bg-background/50 px-3 text-xs font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
               </div>
             </div>
           </div>
