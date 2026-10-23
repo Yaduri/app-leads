@@ -123,6 +123,11 @@
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklch, var(--muted-foreground) 40%, transparent) transparent;
   }
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: clip;
+  }
   body {
     @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary font-sans antialiased;
     caret-color: var(--primary);
@@ -130,6 +135,14 @@
   input, textarea {
     caret-color: var(--primary);
   }
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* Sleek scrollbar for Chromium/WebKit */

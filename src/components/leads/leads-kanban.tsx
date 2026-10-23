@@ -76,7 +76,7 @@ export function LeadsKanban({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 w-full min-w-0">
       {LEAD_STATUSES.map((status) => {
         const items = leads.filter(
           (lead) => lead.status_prospeccao === status,
@@ -94,7 +94,7 @@ export function LeadsKanban({
           <div
             key={status}
             className={cn(
-              "flex flex-col rounded-2xl border transition-all duration-200 shadow-sm",
+              "flex flex-col rounded-2xl border transition-all duration-200 shadow-sm min-w-0 overflow-hidden",
               isOver
                 ? "border-primary bg-primary/[0.04] ring-2 ring-primary/20 scale-[1.01]"
                 : "border-border/70 bg-card/40 backdrop-blur-xl"
@@ -140,9 +140,9 @@ export function LeadsKanban({
             </div>
 
             {/* Lista de Cards da Coluna */}
-            <div className="flex flex-1 flex-col gap-3 p-3 min-h-[420px]">
+            <div className="flex flex-1 flex-col gap-3 p-3 min-h-[120px] md:min-h-[420px] min-w-0">
               {items.length === 0 && (
-                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-12 text-center text-xs text-muted-foreground/60">
+                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-6 md:py-12 text-center text-xs text-muted-foreground/60">
                   Arraste cards para cá
                 </div>
               )}

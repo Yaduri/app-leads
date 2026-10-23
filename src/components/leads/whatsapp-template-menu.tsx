@@ -174,7 +174,7 @@ export function WhatsAppTemplateMenu({
         >
           <ChevronDown className="size-3.5 opacity-80" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80 p-2 space-y-1">
+        <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 max-w-80 p-2 space-y-1">
           <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1">
             Modelos Rápidos (WhatsApp)
           </DropdownMenuLabel>

@@ -236,7 +236,7 @@ export function LeadsTable({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full min-w-0">
       {/* Banner de Seleção em Lote Inteligente (Gmail / Linear style) */}
       {allPageSelected && sortedLeads.length > displayedLeads.length && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-2.5 text-xs animate-in fade-in duration-200">
@@ -273,7 +273,7 @@ export function LeadsTable({
       )}
 
       {/* Mobile Cards View (< md) */}
-      <div className="grid grid-cols-1 gap-3 md:hidden">
+      <div className="grid grid-cols-1 gap-3 md:hidden w-full min-w-0">
         {displayedLeads.map((lead) => {
           const isSelected = selectedIds.includes(lead.id);
           const followUp = getFollowUpInfo(lead);
@@ -282,16 +282,16 @@ export function LeadsTable({
             <div
               key={lead.id}
               className={cn(
-                "flex flex-col gap-3 rounded-2xl border bg-card/60 backdrop-blur-xl p-4 transition-all shadow-sm",
+                "flex flex-col gap-2.5 rounded-2xl border bg-card/60 backdrop-blur-xl p-3.5 sm:p-4 transition-all shadow-sm min-w-0 w-full overflow-hidden",
                 isSelected
                   ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                   : "border-border/70 hover:border-border",
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 min-w-0">
+              <div className="flex items-start justify-between gap-2 min-w-0">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
                   {onToggleSelect && (
-                    <div className="pt-0.5">
+                    <div className="pt-0.5 shrink-0">
                       <Checkbox
                         checked={isSelected}
                         onCheckedChange={() => onToggleSelect(lead.id)}
@@ -299,16 +299,16 @@ export function LeadsTable({
                     </div>
                   )}
                   <div
-                    className="min-w-0 cursor-pointer"
+                    className="min-w-0 flex-1 cursor-pointer"
                     onClick={() => onSelectLead && onSelectLead(lead)}
                   >
-                    <h4 className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors">
+                    <h4 className="font-semibold text-foreground text-sm leading-snug line-clamp-2 break-words hover:text-primary transition-colors">
                       {lead.nome}
                     </h4>
-                    {lead.nicho && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{lead.nicho}</p>
-                    )}
-                    <div className="mt-1">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      {lead.nicho && (
+                        <span className="text-xs text-muted-foreground">{lead.nicho}</span>
+                      )}
                       <DigitalPresenceBadge
                         presence={lead.presenca_digital}
                         siteUrl={lead.site_atual}
@@ -318,12 +318,12 @@ export function LeadsTable({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-0.5 shrink-0 -mr-1 -mt-0.5">
                   {onContactDateChange && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 touch-manipulation active:scale-95"
                       title="Atualizar último contato para hoje"
                       onClick={() => onContactDateChange(lead.id, getQuickDate(0))}
                     >
@@ -334,7 +334,7 @@ export function LeadsTable({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-muted-foreground hover:text-foreground"
+                      className="size-8 text-muted-foreground hover:text-foreground touch-manipulation active:scale-95"
                       title="Ver detalhes"
                       onClick={() => onSelectLead(lead)}
                     >
@@ -344,7 +344,7 @@ export function LeadsTable({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-8 text-muted-foreground hover:text-foreground"
+                    className="size-8 text-muted-foreground hover:text-foreground touch-manipulation active:scale-95"
                     title="Editar"
                     onClick={() => onEdit(lead)}
                   >
@@ -353,7 +353,7 @@ export function LeadsTable({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-8 text-destructive hover:text-destructive"
+                    className="size-8 text-destructive hover:text-destructive touch-manipulation active:scale-95"
                     title="Excluir"
                     onClick={() => onDelete(lead)}
                   >
@@ -362,7 +362,7 @@ export function LeadsTable({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                 {onStatusChange ? (
                   <InlineStatusSelect
                     leadId={lead.id}
@@ -383,7 +383,7 @@ export function LeadsTable({
                   <SaleBadge sale={lead.venda_realizada} />
                 )}
 
-                <div className="ml-auto text-right">
+                <div className="ml-auto text-right shrink-0">
                   {lead.valor_venda > 0 && (
                     <div className="font-mono text-xs font-bold text-foreground">
                       {formatCurrency(lead.valor_venda)}
@@ -399,19 +399,19 @@ export function LeadsTable({
 
               {followUp.isOverdue && (
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20">
-                  <AlertCircle className="size-3" />
-                  <span>Follow-up atrasado ({followUp.label})</span>
+                  <AlertCircle className="size-3 shrink-0" />
+                  <span className="truncate">Follow-up atrasado ({followUp.label})</span>
                 </div>
               )}
 
               {lead.msg_a_mandar && (
-                <p className="text-xs text-muted-foreground/80 line-clamp-2 bg-muted/30 p-2 rounded-lg border border-border/40">
+                <p className="text-xs text-muted-foreground/80 line-clamp-2 break-words bg-muted/30 p-2 rounded-lg border border-border/40">
                   {lead.msg_a_mandar}
                 </p>
               )}
 
-              <div className="flex items-center justify-between pt-2 border-t border-border/40 gap-2">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between pt-2.5 border-t border-border/40 gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                   {onNextContactChange ? (
                     <QuickFollowupPicker
                       leadId={lead.id}

@@ -129,7 +129,7 @@ export function AppShell({
   };
 
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row bg-background text-foreground">
+    <div className="flex min-h-dvh w-full max-w-[100vw] overflow-x-clip flex-col md:flex-row bg-background text-foreground">
       {/* Sidebar (Desktop) */}
       <aside
         className={cn(
@@ -218,14 +218,14 @@ export function AppShell({
       </aside>
 
       {/* Header Superior (Mobile) */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/70 bg-background/80 backdrop-blur-lg px-4 py-3 md:hidden">
+      <header className="sticky top-0 z-40 flex w-full max-w-full items-center justify-between border-b border-border/70 bg-background/85 backdrop-blur-lg px-3.5 py-2.5 sm:px-4 sm:py-3 md:hidden">
         <Logo name={userName} />
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCommandOpen(true)}
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className="size-9 text-muted-foreground hover:text-foreground touch-manipulation"
             title="Busca e Comandos (Ctrl+K)"
           >
             <Search className="size-4" />
@@ -236,13 +236,15 @@ export function AppShell({
       </header>
 
       {/* Conteúdo Principal */}
-      <main className="min-w-0 flex-1 p-4 pb-28 md:p-8 md:pb-8 transition-all">{children}</main>
+      <main className="min-w-0 w-full max-w-full flex-1 px-3.5 py-4 pb-28 sm:px-6 sm:py-6 md:p-8 md:pb-8 transition-all overflow-x-hidden">
+        {children}
+      </main>
 
       {/* Modal de Comandos / Busca Rápida Global */}
       <CommandMenu open={commandOpen} onOpenChange={setCommandOpen} />
 
       {/* Floating Bottom Navigation Bar (Mobile) */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-around border-t border-border/80 bg-card/90 backdrop-blur-xl px-2 py-2 md:hidden shadow-lg shadow-black/20">
+      <nav className="fixed bottom-0 inset-x-0 z-50 flex w-full max-w-[100vw] items-center justify-around border-t border-border/80 bg-card/95 backdrop-blur-xl px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] md:hidden shadow-lg shadow-black/20">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active =
@@ -252,7 +254,7 @@ export function AppShell({
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 rounded-xl py-1 px-3 min-w-[64px] min-h-[44px] transition-all touch-manipulation active:scale-95",
+                "flex flex-1 min-w-0 flex-col items-center justify-center gap-1 rounded-xl py-1 px-1 min-h-[44px] transition-all touch-manipulation active:scale-95",
                 active
                   ? "text-primary font-semibold"
                   : "text-muted-foreground hover:text-foreground",
@@ -266,7 +268,9 @@ export function AppShell({
               >
                 <Icon className="size-4" />
               </div>
-              <span className="text-[11px] tracking-tight leading-none">{item.label}</span>
+              <span className="text-[11px] tracking-tight leading-none truncate max-w-full">
+                {item.label}
+              </span>
             </Link>
           );
         })}

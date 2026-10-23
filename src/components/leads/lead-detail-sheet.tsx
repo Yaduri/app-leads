@@ -111,19 +111,19 @@ export function LeadDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto w-full sm:max-w-lg p-6 space-y-6">
+      <SheetContent className="overflow-y-auto overflow-x-hidden w-full sm:max-w-lg p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header com Avatar e Nome */}
-        <SheetHeader className="pb-4 border-b border-border/70">
-          <div className="flex items-start justify-between gap-4">
+        <SheetHeader className="pb-4 border-b border-border/70 pr-9">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/20 to-primary/10 text-primary font-bold text-lg border border-primary/20 shrink-0 shadow-sm">
+              <div className="flex size-11 sm:size-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/20 to-primary/10 text-primary font-bold text-base sm:text-lg border border-primary/20 shrink-0 shadow-sm">
                 {lead.nome.slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <SheetTitle className="text-xl font-extrabold text-foreground truncate">
+                <SheetTitle className="text-base sm:text-xl font-extrabold text-foreground truncate">
                   {lead.nome}
                 </SheetTitle>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
                   {lead.nicho && (
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                       <Tag className="size-3" />
@@ -234,14 +234,14 @@ export function LeadDetailSheet({
             Pipeline de Vendas
           </span>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Status de Prospecção</label>
               <Select
                 value={lead.status_prospeccao}
                 onValueChange={(val) => onStatusChange(lead.id, val as LeadStatus)}
               >
-                <SelectTrigger className="h-9 text-xs bg-background/50 border-border/70">
+                <SelectTrigger className="h-9 w-full text-xs bg-background/50 border-border/70">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -260,7 +260,7 @@ export function LeadDetailSheet({
                 value={lead.venda_realizada}
                 onValueChange={(val) => onSaleChange && onSaleChange(lead.id, val as SaleStatus)}
               >
-                <SelectTrigger className="h-9 text-xs bg-background/50 border-border/70">
+                <SelectTrigger className="h-9 w-full text-xs bg-background/50 border-border/70">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -274,7 +274,7 @@ export function LeadDetailSheet({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-border/50">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-border/50">
             <div className="space-y-1">
               <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                 <DollarSign className="size-3.5 text-emerald-400" />
@@ -297,7 +297,7 @@ export function LeadDetailSheet({
               </p>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 col-span-2 sm:col-span-1">
               <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                 <Calendar className="size-3.5 text-amber-400" />
                 Último Contato
@@ -323,7 +323,7 @@ export function LeadDetailSheet({
 
           {/* Controle de Pagamento & MRR */}
           <div className="pt-3 border-t border-border/50 space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <CreditCard className="size-3.5 text-emerald-400" />
                 Controle de Pagamentos & MRR
@@ -331,7 +331,7 @@ export function LeadDetailSheet({
               {lead.status_pagamento && (
                 <span
                   className={cn(
-                    "text-[11px] font-semibold px-2 py-0.5 rounded-full border",
+                    "text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0",
                     STATUS_PAGAMENTO_CLASSES[lead.status_pagamento] || "bg-muted text-muted-foreground border-border",
                   )}
                 >
@@ -347,7 +347,7 @@ export function LeadDetailSheet({
                   value={lead.status_pagamento || "Em Aberto"}
                   onValueChange={(val) => onPaymentStatusChange && onPaymentStatusChange(lead.id, val as StatusPagamento)}
                 >
-                  <SelectTrigger id="lead-payment-status" className="h-9 text-xs bg-background/50 border-border/70">
+                  <SelectTrigger id="lead-payment-status" className="h-9 w-full text-xs bg-background/50 border-border/70">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

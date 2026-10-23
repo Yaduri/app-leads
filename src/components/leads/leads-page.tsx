@@ -585,9 +585,9 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 w-full min-w-0">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Leads</h1>
@@ -619,7 +619,7 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       </div>
 
       {/* Smart Views / Abas Rápidas com Contadores Dinâmicos (1-Clique) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 scrollbar-none w-[calc(100%+1.75rem)] sm:w-full max-w-[100vw]">
         <button
           type="button"
           onClick={() => setQuickFilter("all")}
@@ -802,20 +802,22 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
       </div>
 
       {/* Filter Bar & View Mode Switcher */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-2.5 sm:gap-3 lg:flex-row lg:items-center w-full min-w-0">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome ou WhatsApp..."
-            className="pl-9 h-9 text-xs bg-card/40 border-border/70"
+            className="pl-9 h-9 w-full text-xs bg-card/40 border-border/70"
           />
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center w-full lg:w-auto min-w-0">
           <Select value={nicho} onValueChange={(v) => setNicho(v as SelectValueOpt)}>
-            <SelectTrigger className="h-9 min-w-36 text-xs bg-card/40 border-border/70">
-              <SelectValue placeholder="Nicho" />
+            <SelectTrigger className="h-9 w-full min-w-0 sm:w-auto sm:min-w-36 text-xs bg-card/40 border-border/70">
+              <SelectValue placeholder="Nicho">
+                {nicho === "all" ? "Todos os nichos" : nicho}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os nichos</SelectItem>
@@ -831,8 +833,14 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
             value={status}
             onValueChange={(v) => setStatus(v as SelectValueOpt)}
           >
-            <SelectTrigger className="h-9 min-w-36 text-xs bg-card/40 border-border/70">
-              <SelectValue placeholder="Status" />
+            <SelectTrigger className="h-9 w-full min-w-0 sm:w-auto sm:min-w-36 text-xs bg-card/40 border-border/70">
+              <SelectValue placeholder="Status">
+                {status === "all"
+                  ? "Todos os status"
+                  : status.startsWith("exclude-")
+                    ? `Exceto: ${status.replace("exclude-", "")}`
+                    : status}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
@@ -851,8 +859,10 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           </Select>
 
           <Select value={venda} onValueChange={(v) => setVenda(v as SelectValueOpt)}>
-            <SelectTrigger className="h-9 min-w-36 text-xs bg-card/40 border-border/70">
-              <SelectValue placeholder="Venda" />
+            <SelectTrigger className="h-9 w-full min-w-0 sm:w-auto sm:min-w-36 text-xs bg-card/40 border-border/70">
+              <SelectValue placeholder="Venda">
+                {venda === "all" ? "Todas as vendas" : venda}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as vendas</SelectItem>
@@ -869,12 +879,14 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
             onValueChange={(v) => setView(v as ViewMode)}
             className="contents"
           >
-            <TabsList className="grid h-9 w-24 grid-cols-2 bg-muted/60 p-0.5 rounded-lg border border-border/70">
-              <TabsTrigger value="table" title="Visão em Tabela" className="h-8">
-                <Table2 className="size-4" />
+            <TabsList className="grid h-9 w-full sm:w-24 grid-cols-2 bg-muted/60 p-0.5 rounded-lg border border-border/70">
+              <TabsTrigger value="table" title="Visão em Tabela" className="h-8 gap-1 text-xs">
+                <Table2 className="size-4 shrink-0" />
+                <span className="sm:sr-only">Lista</span>
               </TabsTrigger>
-              <TabsTrigger value="kanban" title="Visão em Quadros" className="h-8">
-                <Columns3 className="size-4" />
+              <TabsTrigger value="kanban" title="Visão em Quadros" className="h-8 gap-1 text-xs">
+                <Columns3 className="size-4 shrink-0" />
+                <span className="sm:sr-only">Kanban</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>

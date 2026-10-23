@@ -134,20 +134,55 @@ export function BatchActionsBar({
   return (
     <>
       <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 max-w-3xl w-[94vw] sm:w-auto animate-in fade-in slide-in-from-bottom-4 duration-200">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-2.5 rounded-2xl bg-card/95 backdrop-blur-xl border border-primary/25 shadow-2xl shadow-primary/10 text-foreground">
-          <div className="flex items-center gap-2 pr-1">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/20 text-primary">
-              <CheckSquare className="size-4" />
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-2.5 px-3.5 py-2.5 sm:px-4 rounded-2xl bg-card/95 backdrop-blur-xl border border-primary/25 shadow-2xl shadow-primary/10 text-foreground">
+          <div className="flex items-center justify-between sm:justify-start gap-2 pr-1">
+            <div className="flex items-center gap-2">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/20 text-primary">
+                <CheckSquare className="size-4" />
+              </div>
+              <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
+                {selectedIds.length} {selectedIds.length === 1 ? "selecionado" : "selecionados"}
+              </span>
             </div>
-            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
-              {selectedIds.length} {selectedIds.length === 1 ? "selecionado" : "selecionados"}
-            </span>
+
+            {/* Botões de ação rápida visíveis na linha superior no mobile */}
+            <div className="flex items-center gap-1 sm:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-xs font-medium gap-1 bg-background/60 border-border/70 hover:text-primary"
+                onClick={handleMarkContactToday}
+                disabled={isPending}
+                title="Atualizar último contato de todos os selecionados para hoje"
+              >
+                <CalendarCheck className="size-3.5 text-primary" />
+                <span>Hoje</span>
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 px-2 text-xs font-medium gap-1"
+                onClick={() => setDeleteAlertOpen(true)}
+                disabled={isPending}
+              >
+                {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-foreground"
+                onClick={onClearSelection}
+                title="Cancelar seleção"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
             {/* Mudar Status em Massa */}
             <Select onValueChange={(val) => handleStatusChange(val as LeadStatus)} disabled={isPending}>
-              <SelectTrigger className="h-8 text-xs min-w-[130px] bg-background/60 border-border/70">
+              <SelectTrigger className="h-8 w-full sm:w-auto text-xs sm:min-w-[130px] bg-background/60 border-border/70">
                 <SelectValue placeholder="Mudar Status..." />
               </SelectTrigger>
               <SelectContent>
@@ -161,7 +196,7 @@ export function BatchActionsBar({
 
             {/* Agendar Follow-up em Massa */}
             <Select onValueChange={(val) => handleFollowUpChange(String(val))} disabled={isPending}>
-              <SelectTrigger className="h-8 text-xs min-w-[140px] bg-background/60 border-border/70">
+              <SelectTrigger className="h-8 w-full sm:w-auto text-xs sm:min-w-[140px] bg-background/60 border-border/70">
                 <Clock className="size-3.5 text-amber-400 mr-1 shrink-0" />
                 <SelectValue placeholder="Agendar Retorno..." />
               </SelectTrigger>
@@ -174,24 +209,24 @@ export function BatchActionsBar({
               </SelectContent>
             </Select>
 
-            {/* Atualizar Último Contato para Hoje em Massa */}
+            {/* Atualizar Último Contato para Hoje em Massa (Desktop) */}
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-2.5 text-xs font-medium gap-1.5 bg-background/60 border-border/70 hover:text-primary"
+              className="hidden sm:inline-flex h-8 px-2.5 text-xs font-medium gap-1.5 bg-background/60 border-border/70 hover:text-primary"
               onClick={handleMarkContactToday}
               disabled={isPending}
               title="Atualizar último contato de todos os selecionados para hoje"
             >
               <CalendarCheck className="size-3.5 text-primary" />
-              <span className="hidden sm:inline">Contato Hoje</span>
+              <span>Contato Hoje</span>
             </Button>
 
-            {/* Excluir em Massa */}
+            {/* Excluir em Massa (Desktop) */}
             <Button
               variant="destructive"
               size="sm"
-              className="h-8 px-2.5 text-xs font-medium gap-1.5"
+              className="hidden sm:inline-flex h-8 px-2.5 text-xs font-medium gap-1.5"
               onClick={() => setDeleteAlertOpen(true)}
               disabled={isPending}
             >
@@ -202,7 +237,7 @@ export function BatchActionsBar({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 text-muted-foreground hover:text-foreground"
+              className="hidden sm:inline-flex size-8 text-muted-foreground hover:text-foreground"
               onClick={onClearSelection}
               title="Cancelar seleção"
             >

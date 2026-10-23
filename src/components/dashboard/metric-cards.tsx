@@ -146,15 +146,15 @@ export function MetricCards({ metrics }: { metrics: Metrics }) {
       </Card>
 
       {/* Card 4: Base Geral de Leads (Span Total no mobile, 1 col em desktop se necessário) */}
-      <Card className="relative overflow-hidden border-border/70 bg-card/60 backdrop-blur-xl shadow-md md:col-span-2 lg:col-span-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-400 border border-sky-500/25 shrink-0">
-              <Users className="size-6" />
+      <Card className="relative overflow-hidden border-border/70 bg-card/60 backdrop-blur-xl shadow-md sm:col-span-2 lg:col-span-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-6 gap-4">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+            <div className="flex size-11 sm:size-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-400 border border-sky-500/25 shrink-0">
+              <Users className="size-5 sm:size-6" />
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-lg font-bold text-foreground">Base Total de Oportunidades</h3>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-foreground">Base Total de Oportunidades</h3>
                 <span className="rounded-full bg-sky-500/15 text-sky-300 text-xs px-2.5 py-0.5 border border-sky-500/25 font-mono">
                   {metrics.total} leads
                 </span>
@@ -171,18 +171,18 @@ export function MetricCards({ metrics }: { metrics: Metrics }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
             <Button
               variant="outline"
               size="sm"
-              className="text-xs gap-1.5"
+              className="flex-1 md:flex-initial text-xs gap-1.5"
               render={<Link href="/importar" />}
             >
               Importar Mais
             </Button>
             <Button
               size="sm"
-              className="text-xs gap-1.5"
+              className="flex-1 md:flex-initial text-xs gap-1.5"
               render={<Link href="/leads" />}
             >
               Gerenciar no Kanban

@@ -254,7 +254,7 @@ export function LeadFormDialog({
                 value={presencaDigital}
                 onValueChange={(v) => setPresencaDigital(v as PresencaDigital)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,7 +272,7 @@ export function LeadFormDialog({
             <div className="grid gap-2">
               <Label>Status de prospecção</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as LeadStatus)}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -287,7 +287,7 @@ export function LeadFormDialog({
             <div className="grid gap-2">
               <Label>Venda realizada</Label>
               <Select value={venda} onValueChange={(v) => setVenda(v as SaleStatus)}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -310,7 +310,7 @@ export function LeadFormDialog({
                 value={etapaEntrega}
                 onValueChange={(v) => setEtapaEntrega(v as EtapaEntrega)}
               >
-                <SelectTrigger className="bg-background/80">
+                <SelectTrigger className="w-full bg-background/80">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -432,7 +432,7 @@ export function LeadFormDialog({
                 value={statusPagamento}
                 onValueChange={(v) => setStatusPagamento(v as StatusPagamento)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

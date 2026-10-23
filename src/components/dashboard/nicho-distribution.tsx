@@ -74,27 +74,27 @@ export function NichoDistribution({
 
           return (
             <div key={c.nicho} className="space-y-1.5 group">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                   {index < 3 ? (
                     <span
                       className={cn(
-                        "size-5 rounded-full flex items-center justify-center text-[11px] font-bold border",
+                        "size-5 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold border",
                         badgeClass,
                       )}
                     >
                       {index + 1}
                     </span>
                   ) : (
-                    <span className="size-5 rounded-full flex items-center justify-center text-[11px] text-muted-foreground font-medium">
+                    <span className="size-5 shrink-0 rounded-full flex items-center justify-center text-[11px] text-muted-foreground font-medium">
                       {index + 1}
                     </span>
                   )}
-                  <span className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
                     {c.nicho}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 ml-auto">
                   {c.conversionRate !== undefined && c.conversionRate > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <TrendingUp className="size-2.5" />
