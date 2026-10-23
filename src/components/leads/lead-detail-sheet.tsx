@@ -17,6 +17,8 @@ import {
   CalendarCheck,
   Save,
   CreditCard,
+  Zap,
+  Sun,
 } from "lucide-react";
 
 import {
@@ -404,13 +406,15 @@ export function LeadDetailSheet({
               </span>
             )}
             {followUpInfo.urgency === "today" && (
-              <span className="text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
-                ⚡ Retornar Hoje!
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                <Zap className="size-3 shrink-0" />
+                Retornar Hoje!
               </span>
             )}
             {followUpInfo.urgency === "tomorrow" && (
-              <span className="text-[11px] font-medium text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-full">
-                ☀️ Retornar Amanhã
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-full">
+                <Sun className="size-3 shrink-0" />
+                Retornar Amanhã
               </span>
             )}
             {followUpInfo.urgency === "future" && (

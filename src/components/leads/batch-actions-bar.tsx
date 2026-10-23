@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckSquare, Trash2, X, Loader2, CalendarCheck, Clock } from "lucide-react";
+import {
+  CheckSquare,
+  Trash2,
+  X,
+  Loader2,
+  CalendarCheck,
+  Clock,
+  Zap,
+  Sun,
+  Calendar,
+  CalendarDays,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -201,11 +213,26 @@ export function BatchActionsBar({
                 <SelectValue placeholder="Agendar Retorno..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">⚡ Para Hoje</SelectItem>
-                <SelectItem value="tomorrow">☀️ Para Amanhã (+1d)</SelectItem>
-                <SelectItem value="3days">📅 Daqui a 3 dias</SelectItem>
-                <SelectItem value="7days">🗓️ Daqui a 7 dias</SelectItem>
-                <SelectItem value="clear">❌ Limpar Follow-up</SelectItem>
+                <SelectItem value="today">
+                  <Zap className="size-3.5 text-amber-400 shrink-0" />
+                  Para Hoje
+                </SelectItem>
+                <SelectItem value="tomorrow">
+                  <Sun className="size-3.5 text-sky-400 shrink-0" />
+                  Para Amanhã (+1d)
+                </SelectItem>
+                <SelectItem value="3days">
+                  <Calendar className="size-3.5 text-primary shrink-0" />
+                  Daqui a 3 dias
+                </SelectItem>
+                <SelectItem value="7days">
+                  <CalendarDays className="size-3.5 text-muted-foreground shrink-0" />
+                  Daqui a 7 dias
+                </SelectItem>
+                <SelectItem value="clear">
+                  <XCircle className="size-3.5 text-rose-400 shrink-0" />
+                  Limpar Follow-up
+                </SelectItem>
               </SelectContent>
             </Select>
 

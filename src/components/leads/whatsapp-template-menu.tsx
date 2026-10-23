@@ -136,43 +136,36 @@ export function WhatsAppTemplateMenu({
 
   return (
     <div
-      className="inline-flex items-center rounded-lg shadow-sm"
+      className="inline-flex items-stretch rounded-lg overflow-hidden shadow-xs border border-emerald-500/30 bg-emerald-600 text-white shrink-0"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Botão Principal de Envio Rápido */}
-      <Button
-        render={
-          <a
-            href={primaryUrl || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => onContactSent?.()}
-          />
-        }
-        size={label ? "default" : "icon"}
+      <a
+        href={primaryUrl || "#"}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => onContactSent?.()}
         className={cn(
-          "bg-emerald-600 text-white hover:bg-emerald-500 active:scale-[0.98] transition-all font-medium",
-          compact && !label && "rounded-r-none border-r border-emerald-700/40 size-8",
-          label && "rounded-r-none border-r border-emerald-700/40",
+          "inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 transition-colors font-medium text-xs select-none outline-none touch-manipulation",
+          label ? "h-8 px-3" : "size-8",
         )}
         title="Abrir WhatsApp com mensagem principal"
       >
-        <MessageCircle className="size-4" />
-        {label ? <span className="ml-1.5">{label}</span> : null}
-      </Button>
+        <MessageCircle className="size-3.5 shrink-0" />
+        {label ? <span>{label}</span> : null}
+      </a>
 
       {/* Dropdown com Modelos de Mensagens */}
       <DropdownMenu>
         <DropdownMenuTrigger
           type="button"
           className={cn(
-            "inline-flex items-center justify-center bg-emerald-600 text-white hover:bg-emerald-500 rounded-r-lg rounded-l-none px-1 transition-all cursor-pointer outline-none active:scale-95",
-            compact && "size-8 w-6",
-            label && "h-9 w-7",
+            "inline-flex items-center justify-center bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 border-l border-emerald-700/60 transition-colors cursor-pointer outline-none touch-manipulation",
+            label ? "h-8 w-7" : "h-8 w-6",
           )}
           title="Escolher modelo de mensagem"
         >
-          <ChevronDown className="size-3.5 opacity-80" />
+          <ChevronDown className="size-3.5 opacity-90 shrink-0" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 max-w-80 p-2 space-y-1">
           <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1">

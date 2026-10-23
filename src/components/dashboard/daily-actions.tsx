@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   Flame,
+  PartyPopper,
   Pencil,
   Target,
 } from "lucide-react";
@@ -264,8 +265,9 @@ export function DailyActions({
 
           <div className="rounded-xl bg-muted/30 border border-border/50 p-3 text-xs text-muted-foreground space-y-1">
             {vendasTotal >= goal ? (
-              <p className="text-emerald-400 font-semibold">
-                🎉 Parabéns! Você bateu sua meta estipulada!
+              <p className="text-emerald-400 font-semibold flex items-center gap-1.5">
+                <PartyPopper className="size-4 shrink-0" />
+                Parabéns! Você bateu sua meta estipulada!
               </p>
             ) : (
               <p>

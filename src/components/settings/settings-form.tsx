@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Save,
   Globe,
+  Lightbulb,
 } from "lucide-react";
 import { toast } from "sonner";
 import Papa from "papaparse";
@@ -526,7 +527,10 @@ print(response.json())`}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg bg-muted/40 p-3 border border-border/70 text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold text-foreground">💡 Variáveis dinâmicas que você pode usar:</p>
+            <p className="font-semibold text-foreground flex items-center gap-1.5">
+              <Lightbulb className="size-3.5 text-amber-400 shrink-0" />
+              Variáveis dinâmicas que você pode usar:
+            </p>
             <div className="flex flex-wrap gap-2 text-[11px] pt-1">
               <span className="bg-background px-2 py-0.5 rounded border border-border font-mono">
                 {"{nome}"} = Primeiro nome

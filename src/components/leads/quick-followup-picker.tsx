@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Clock, AlertTriangle, Check, X } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, Check, X, Zap, Sun, CalendarDays } from "lucide-react";
 import { formatSimpleDate, getFollowUpInfo, getQuickDate } from "@/lib/follow-up";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { LeadStatus, SaleStatus } from "@/lib/types";
@@ -131,28 +131,32 @@ export function QuickFollowupPicker({
               onClick={() => handleApply(getQuickDate(0))}
               className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
-              ⚡ Hoje
+              <Zap className="size-3 shrink-0" />
+              Hoje
             </button>
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(1))}
               className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 border border-sky-500/20 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
-              ☀️ Amanhã (+1d)
+              <Sun className="size-3 shrink-0" />
+              Amanhã (+1d)
             </button>
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(3))}
               className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
-              📆 Em 3 dias
+              <Calendar className="size-3 shrink-0" />
+              Em 3 dias
             </button>
             <button
               type="button"
               onClick={() => handleApply(getQuickDate(7))}
               className="flex items-center justify-center gap-1 py-1.5 px-2 min-h-[34px] text-[11px] font-medium rounded-lg bg-muted/60 text-foreground hover:bg-muted border border-border/60 transition-all cursor-pointer touch-manipulation active:scale-[0.98]"
             >
-              🗓️ Em 1 semana
+              <CalendarDays className="size-3 shrink-0" />
+              Em 1 semana
             </button>
           </div>
 

@@ -15,6 +15,9 @@ import {
   Rocket,
   CheckCircle2,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  CornerDownLeft,
   Sparkles,
 } from "lucide-react";
 
@@ -279,12 +282,18 @@ export function CommandMenu({
         <div className="border-t border-border/70 bg-muted/30 px-4 py-2 flex items-center justify-between text-[11px] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-muted px-1 border border-border text-[11px]">↑</kbd>
-              <kbd className="rounded bg-muted px-1 border border-border text-[11px]">↓</kbd>
+              <kbd className="inline-flex items-center justify-center rounded bg-muted px-1 py-0.5 border border-border text-[11px]">
+                <ArrowUp className="size-2.5" />
+              </kbd>
+              <kbd className="inline-flex items-center justify-center rounded bg-muted px-1 py-0.5 border border-border text-[11px]">
+                <ArrowDown className="size-2.5" />
+              </kbd>
               Navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-muted px-1 border border-border text-[11px]">↵</kbd>
+              <kbd className="inline-flex items-center justify-center rounded bg-muted px-1 py-0.5 border border-border text-[11px]">
+                <CornerDownLeft className="size-2.5" />
+              </kbd>
               Executar
             </span>
           </div>
