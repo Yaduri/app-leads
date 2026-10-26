@@ -21,7 +21,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { toast } from "sonner";
-import Papa from "papaparse";
+import { downloadLeadsCsv } from "@/lib/csv/export-leads-csv";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,39 +168,7 @@ export function SettingsForm({
         return;
       }
 
-      const csvData = leads.map((l) => ({
-        Nicho: l.nicho ?? "",
-        Nome: l.nome ?? "",
-        WhatsApp: l.whatsapp ?? "",
-        "Link do Perfil": l.link_perfil || l.whatsapp || "",
-        "Site Atual": l.site_atual ?? "",
-        "Presença Digital": l.presenca_digital ?? "Sem Site",
-        "Status de Prospecção": l.status_prospeccao ?? "",
-        "Venda Realizada": l.venda_realizada ?? "",
-        "Etapa de Entrega": l.etapa_entrega ?? "Briefing & Conteúdo",
-        Observações: l.observacoes ?? "",
-        Data: l.data_contato ?? "",
-        "Próximo Contato": l.data_proximo_contato ?? "",
-        "Msg a mandar": l.msg_a_mandar ?? "",
-        "Valor da Venda": l.valor_venda
-          ? `R$ ${Number(l.valor_venda).toFixed(2).replace(".", ",")}`
-          : "R$ 0,00",
-        "Valor Recorrente": l.valor_recorrente
-          ? `R$ ${Number(l.valor_recorrente).toFixed(2).replace(".", ",")}`
-          : "R$ 0,00",
-      }));
-
-      const csv = Papa.unparse(csvData);
-      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `backup-leads-${new Date().toISOString().slice(0, 10)}.csv`);
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
+      downloadLeadsCsv(leads, `backup-leads-${new Date().toISOString().slice(0, 10)}.csv`);
       toast.success("Backup completo exportado com sucesso!");
     } catch (err) {
       console.error(err);

@@ -82,9 +82,7 @@ export function ImportCsvForm() {
         <CardHeader>
           <CardTitle className="text-base">Seu arquivo CSV</CardTitle>
           <CardDescription>
-            Arraste o arquivo aqui ou clique para escolher. Cabeçalhos
-            esperados: Nicho, Nome, Link do Perfil, Status de Prospecção,
-            Venda Realizada, Observações, Data, Msg a mandar, Valor da Venda.
+            Arraste o arquivo aqui ou clique para escolher. Compatível tanto com planilhas clássicas (Google Sheets / Excel) quanto com o backup completo do sistema (incluindo MRR/recorrência, status de pagamento e etapa).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -171,7 +169,8 @@ export function ImportCsvForm() {
                     <TableHead className="w-10" />
                     <TableHead>Status</TableHead>
                     <TableHead>Venda</TableHead>
-                    <TableHead>Valor</TableHead>
+                    <TableHead>Valor Venda</TableHead>
+                    <TableHead>Mensalidade</TableHead>
                     <TableHead>Data</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -204,6 +203,9 @@ export function ImportCsvForm() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm font-medium">
                         {formatValue(row.valor_venda)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-muted-foreground font-mono">
+                        {row.valor_recorrente ? formatValue(row.valor_recorrente) : "—"}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                         {row.data_contato ?? "—"}

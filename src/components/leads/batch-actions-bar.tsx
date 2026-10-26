@@ -13,6 +13,7 @@ import {
   Calendar,
   CalendarDays,
   XCircle,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -51,6 +52,7 @@ interface BatchActionsBarProps {
   onBulkFollowUpUpdated?: (ids: string[], date: string | null) => void;
   onBulkContactDateUpdated?: (ids: string[], date: string) => void;
   onBulkDeleted?: (ids: string[]) => void;
+  onExportSelected?: () => void;
 }
 
 export function BatchActionsBar({
@@ -60,6 +62,7 @@ export function BatchActionsBar({
   onBulkFollowUpUpdated,
   onBulkContactDateUpdated,
   onBulkDeleted,
+  onExportSelected,
 }: BatchActionsBarProps) {
   const [isPending, startTransition] = useTransition();
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
@@ -159,6 +162,18 @@ export function BatchActionsBar({
 
             {/* Botões de ação rápida visíveis na linha superior no mobile */}
             <div className="flex items-center gap-1 sm:hidden">
+              {onExportSelected && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2 text-xs font-medium gap-1 bg-background/60 border-border/70 hover:text-primary"
+                  onClick={onExportSelected}
+                  disabled={isPending}
+                  title="Exportar selecionados para CSV"
+                >
+                  <Download className="size-3.5 text-primary" />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -235,6 +250,21 @@ export function BatchActionsBar({
                 </SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Exportar Selecionados (Desktop) */}
+            {onExportSelected && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:inline-flex h-8 px-2.5 text-xs font-medium gap-1.5 bg-background/60 border-border/70 hover:text-primary"
+                onClick={onExportSelected}
+                disabled={isPending}
+                title="Exportar leads selecionados para arquivo CSV"
+              >
+                <Download className="size-3.5 text-primary" />
+                <span>Exportar ({selectedIds.length})</span>
+              </Button>
+            )}
 
             {/* Atualizar Último Contato para Hoje em Massa (Desktop) */}
             <Button

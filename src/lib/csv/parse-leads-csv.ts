@@ -7,6 +7,7 @@ import type {
   ParsedLeadRow,
   PresencaDigital,
   SaleStatus,
+  StatusPagamento,
 } from "@/lib/types";
 import { sanitizePhone } from "@/lib/whatsapp";
 
@@ -107,20 +108,46 @@ export function normalizeSale(raw: string): SaleStatus {
     : "Em aberto";
 }
 
-const VALID_PRESENCAS: PresencaDigital[] = [
-  "Sem Site",
-  "Site Lento/Antigo",
-  "Apenas Instagram",
-  "Site Moderno",
-];
+export function normalizePresenca(raw: string, siteAtual?: string | null): PresencaDigital {
+  const k = normalize(raw);
+  if (k.includes("sem site")) return "Sem Site";
+  if (k.includes("lento") || k.includes("antigo")) return "Site Lento/Antigo";
+  if (k.includes("instagram") || k.includes("insta")) return "Apenas Instagram";
+  if (k.includes("moderno") || k.includes("bom")) return "Site Moderno";
+  return siteAtual ? "Site Lento/Antigo" : "Sem Site";
+}
 
-const VALID_ETAPAS: EtapaEntrega[] = [
-  "Briefing & Conteúdo",
-  "Design & Layout",
-  "Desenvolvimento",
-  "Revisão com Cliente",
-  "Site no Ar",
-];
+export function normalizeEtapa(raw: string): EtapaEntrega {
+  const k = normalize(raw);
+  if (!k) return "Briefing & Conteúdo";
+  if (k.includes("briefing") || k.includes("conteudo")) return "Briefing & Conteúdo";
+  if (k.includes("design") || k.includes("layout")) return "Design & Layout";
+  if (k.includes("desenvolvimento") || k.includes("dev")) return "Desenvolvimento";
+  if (k.includes("revisao") || k.includes("cliente")) return "Revisão com Cliente";
+  if (k.includes("no ar") || k.includes("publicado") || k.includes("finalizado")) return "Site no Ar";
+  return "Briefing & Conteúdo";
+}
+
+export function normalizeStatusPagamento(raw: string): StatusPagamento {
+  const k = normalize(raw);
+  if (!k) return "Em Aberto";
+  if (k.includes("aguardando") || k.includes("entrada")) return "Aguardando Entrada (50%)";
+  if (k.includes("50%") || k.includes("producao")) return "50% Pago (Em Produção)";
+  if (k.includes("100%") || k.includes("quitado")) return "100% Quitado";
+  if (k.includes("pendente") || k.includes("atrasad")) return "Mensalidade Pendente";
+  if (k.includes("dia")) return "Mensalidade em Dia";
+  if (k.includes("pago")) return "100% Quitado";
+  return "Em Aberto";
+}
+
+export function parseDueDay(raw: string): number | null {
+  if (!raw) return null;
+  const cleaned = raw.replace(/\D/g, "");
+  if (!cleaned) return null;
+  const num = parseInt(cleaned, 10);
+  if (isNaN(num) || num < 1 || num > 31) return null;
+  return num;
+}
 
 function extractContact(value: string): {
   whatsapp: string | null;
@@ -139,8 +166,8 @@ function extractContact(value: string): {
 
 /**
  * Faz o parsing de um CSV de leads.
- * - Ignora linhas de cabecalho/lixo ate encontrar a linha com "Nicho, Nome".
- * - Suporta tanto o modelo clássico quanto o backup completo com todos os campos.
+ * - Ignora linhas de cabecalho/lixo ate encontrar a linha com cabeçalhos válidos.
+ * - Suporta tanto o modelo clássico do Google Sheets quanto o backup completo com todos os campos do sistema.
  */
 export function parseLeadsCsv(text: string): CsvParseResult {
   const parsed = Papa.parse<string[]>(text, { skipEmptyLines: "greedy" });
@@ -148,7 +175,16 @@ export function parseLeadsCsv(text: string): CsvParseResult {
   const errors: string[] = [];
 
   const headerIndex = rows.findIndex(
-    (r) => normalize(r[0] ?? "") === "nicho" && normalize(r[1] ?? "") === "nome",
+    (r) =>
+      (normalize(r[0] ?? "") === "nicho" && normalize(r[1] ?? "") === "nome") ||
+      (r.some((cell) => normalize(cell) === "nome") &&
+        r.some(
+          (cell) =>
+            normalize(cell) === "whatsapp" ||
+            normalize(cell) === "link do perfil" ||
+            normalize(cell) === "nicho" ||
+            normalize(cell) === "status de prospeccao",
+        )),
   );
 
   if (headerIndex === -1) {
@@ -157,34 +193,39 @@ export function parseLeadsCsv(text: string): CsvParseResult {
       validCount: 0,
       skippedCount: 0,
       errors: [
-        "Cabeçalho não encontrado. Verifique se a primeira linha com dados é " +
-          '"Nicho, Nome, Link do Perfil, ..."',
+        "Cabeçalho não encontrado. Verifique se o arquivo possui colunas como " +
+          '"Nome", "WhatsApp", "Status de Prospecção", etc.',
       ],
     };
   }
 
   const header = (rows[headerIndex] ?? []).map((h) => normalize(h ?? ""));
-  const col = (name: string) => {
-    const index = header.indexOf(name);
-    return index === -1 ? -1 : index;
+  const colFind = (...names: string[]) => {
+    for (const name of names) {
+      const index = header.indexOf(name);
+      if (index !== -1) return index;
+    }
+    return -1;
   };
 
   const cols = {
-    nicho: col("nicho"),
-    nome: col("nome"),
-    whatsapp: col("whatsapp"),
-    link: col("link do perfil"),
-    siteAtual: col("site atual"),
-    presenca: col("presenca digital"),
-    status: col("status de prospeccao"),
-    venda: col("venda realizada"),
-    etapa: col("etapa de entrega"),
-    obs: col("observacoes"),
-    data: col("data"),
-    proximoContato: col("proximo contato"),
-    msg: col("msg a mandar"),
-    valor: col("valor da venda"),
-    recorrente: col("valor recorrente"),
+    nicho: colFind("nicho"),
+    nome: colFind("nome"),
+    whatsapp: colFind("whatsapp", "telefone", "celular", "contato"),
+    link: colFind("link do perfil", "link", "perfil", "instagram"),
+    siteAtual: colFind("site atual", "site"),
+    presenca: colFind("presenca digital", "presenca"),
+    status: colFind("status de prospeccao", "status", "status prospeccao"),
+    venda: colFind("venda realizada", "venda"),
+    etapa: colFind("etapa de entrega", "etapa"),
+    statusPagamento: colFind("status do pagamento", "status pagamento", "pagamento"),
+    diaVencimento: colFind("dia de vencimento", "dia vencimento", "vencimento"),
+    obs: colFind("observacoes", "observacao", "obs"),
+    data: colFind("data", "data contato", "data do contato"),
+    proximoContato: colFind("proximo contato", "follow up", "followup", "retorno"),
+    msg: colFind("msg a mandar", "mensagem", "msg"),
+    valor: colFind("valor da venda", "valor", "preco"),
+    recorrente: colFind("valor recorrente", "recorrente", "mensalidade", "mrr"),
   };
 
   if (cols.nome === -1) {
@@ -215,17 +256,10 @@ export function parseLeadsCsv(text: string): CsvParseResult {
     const whatsapp = explicitWhatsapp || extracted.whatsapp;
     const link_perfil = extracted.link_perfil;
     const site_atual = get(cols.siteAtual) || null;
-    const rawPresenca = get(cols.presenca) as PresencaDigital;
-    const presenca_digital: PresencaDigital = VALID_PRESENCAS.includes(rawPresenca)
-      ? rawPresenca
-      : site_atual
-        ? "Site Lento/Antigo"
-        : "Sem Site";
-
-    const rawEtapa = get(cols.etapa) as EtapaEntrega;
-    const etapa_entrega: EtapaEntrega = VALID_ETAPAS.includes(rawEtapa)
-      ? rawEtapa
-      : "Briefing & Conteúdo";
+    const presenca_digital = normalizePresenca(get(cols.presenca), site_atual);
+    const etapa_entrega = normalizeEtapa(get(cols.etapa));
+    const status_pagamento = normalizeStatusPagamento(get(cols.statusPagamento));
+    const dia_vencimento = parseDueDay(get(cols.diaVencimento));
 
     const valor = parseCurrency(get(cols.valor));
     const valor_recorrente = parseCurrency(get(cols.recorrente));
@@ -242,6 +276,8 @@ export function parseLeadsCsv(text: string): CsvParseResult {
       status_prospeccao: normalizeStatus(get(cols.status)),
       venda_realizada: normalizeSale(get(cols.venda)),
       etapa_entrega,
+      status_pagamento,
+      dia_vencimento,
       observacoes: get(cols.obs) || null,
       data_contato,
       data_proximo_contato,

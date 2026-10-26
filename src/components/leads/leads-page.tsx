@@ -18,8 +18,10 @@ import {
   CheckCircle2,
   Sparkles,
   CreditCard,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { downloadLeadsCsv } from "@/lib/csv/export-leads-csv";
 
 import { LeadFormDialog, type LeadFormValues } from "@/components/leads/lead-form-dialog";
 import { LeadsKanban } from "@/components/leads/leads-kanban";
@@ -584,6 +586,16 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
     setQuickFilter("all");
   }
 
+  function handleExportFiltered() {
+    if (filtered.length === 0) {
+      toast.error("Nenhum lead para exportar com os filtros atuais.");
+      return;
+    }
+    const filterSuffix = quickFilter !== "all" ? `-${quickFilter}` : "";
+    downloadLeadsCsv(filtered, `leads${filterSuffix}-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success(`${filtered.length} lead(s) exportado(s) com sucesso!`);
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
       {/* Top Header */}
@@ -599,7 +611,17 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
             {localLeads.length} cadastrados na sua conta
           </p>
         </div>
-        <div className="flex w-full items-center gap-2 sm:w-auto">
+        <div className="flex w-full flex-wrap sm:flex-nowrap items-center gap-2 sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleExportFiltered}
+            disabled={filtered.length === 0}
+            className="flex-1 sm:flex-initial text-xs h-9 gap-1.5"
+            title="Exportar leads visualizados para arquivo CSV"
+          >
+            <Download className="size-3.5" />
+            Exportar CSV
+          </Button>
           <Button
             variant="outline"
             render={<Link href="/importar" />}
@@ -982,6 +1004,12 @@ export function LeadsPage({ leads: initialLeads }: { leads: Lead[] }) {
           const idSet = new Set(ids);
           setLocalLeads((ls) => ls.filter((l) => !idSet.has(l.id)));
           if (viewingLeadId && idSet.has(viewingLeadId)) setViewingLeadId(null);
+        }}
+        onExportSelected={() => {
+          const idSet = new Set(selectedIds);
+          const selected = localLeads.filter((l) => idSet.has(l.id));
+          downloadLeadsCsv(selected, `leads-selecionados-${new Date().toISOString().slice(0, 10)}.csv`);
+          toast.success(`${selected.length} lead(s) selecionado(s) exportado(s)!`);
         }}
       />
 
